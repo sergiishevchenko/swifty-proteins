@@ -1,0 +1,45 @@
+# macOS
+.DS_Store
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code
+.vscode/
+
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration
+local.properties
+
+# Android generated files
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Kotlin / Java
+*.class
+*.log
+
+# Signing files / secrets
+*.jks
+*.keystore
+keystore.properties
+secrets.properties
+
+# NDK / CMake
+.ninja_log
+.ninja_deps
+.cxx/
+
+# Profiling / crash outputs
+*.hprof
+
