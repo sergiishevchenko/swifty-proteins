@@ -5,12 +5,12 @@ import androidx.compose.ui.graphics.Color
 object CpkColors {
 
     private val colorMap = mapOf(
-        "H"  to Color(0xFFFFFFFF),
+        "H"  to Color(0xFFEDEDED),
         "HE" to Color(0xFFD9FFFF),
         "LI" to Color(0xFFCC80FF),
         "BE" to Color(0xFFC2FF00),
         "B"  to Color(0xFFFFB5B5),
-        "C"  to Color(0xFF909090),
+        "C"  to Color(0xFF33CC33),
         "N"  to Color(0xFF3050F8),
         "O"  to Color(0xFFFF0D0D),
         "F"  to Color(0xFF90E050),
@@ -62,10 +62,16 @@ object CpkColors {
         "BI" to Color(0xFF9E4FB5),
     )
 
-    private val DEFAULT = Color(0xFFDD77FF)
+    private val DEFAULT = Color(0xFF33CC33)
 
     fun getColor(element: String): Color {
-        return colorMap[element.uppercase().trim()] ?: DEFAULT
+        val normalized = element.uppercase().trim().replace(Regex("[^A-Z]"), "")
+        val key = when {
+            normalized.length >= 2 && normalized.substring(0, 2) in colorMap.keys -> normalized.substring(0, 2)
+            normalized.isNotEmpty() -> normalized.substring(0, 1)
+            else -> ""
+        }
+        return colorMap[key] ?: DEFAULT
     }
 
     fun getColorFloats(element: String): FloatArray {
