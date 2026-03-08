@@ -223,14 +223,7 @@ private fun MoleculeViewer(
         orbitHomePosition = cameraNode.position
     )
 
-    Box(
-        modifier = modifier.clickable(
-            indication = null,
-            interactionSource = remember { MutableInteractionSource() }
-        ) {
-            if (selectedAtom != null) onDismissAtom()
-        }
-    ) {
+    Box(modifier = modifier) {
         Scene(
             modifier = Modifier.fillMaxSize(),
             engine = engine,
@@ -238,8 +231,19 @@ private fun MoleculeViewer(
             cameraNode = cameraNode,
             cameraManipulator = cameraManipulator,
             childNodes = listOf(parentNode),
-            onFrame = { /* called each frame */ }
+            onFrame = { }
         )
+
+        if (selectedAtom != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { onDismissAtom() }
+            )
+        }
     }
 }
 

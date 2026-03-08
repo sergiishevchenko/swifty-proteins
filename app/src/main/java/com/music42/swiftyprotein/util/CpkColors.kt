@@ -5,43 +5,64 @@ import androidx.compose.ui.graphics.Color
 object CpkColors {
 
     private val colorMap = mapOf(
-        "H"  to Color(0xFFFFFFFF),  // White
-        "C"  to Color(0xFF555555),  // Dark gray
-        "N"  to Color(0xFF3050F8),  // Blue
-        "O"  to Color(0xFFFF0D0D),  // Red
-        "F"  to Color(0xFF90E050),  // Green
-        "CL" to Color(0xFF1FF01F),  // Green
-        "BR" to Color(0xFFA62929),  // Dark red
-        "I"  to Color(0xFF940094),  // Dark violet
-        "HE" to Color(0xFFD9FFFF),  // Cyan
-        "NE" to Color(0xFFB3E3F5),  // Cyan-ish
-        "AR" to Color(0xFF80D1E3),  // Cyan-ish
-        "KR" to Color(0xFF5CB8D1),  // Cyan-ish
-        "XE" to Color(0xFF429EB0),  // Cyan-ish
-        "P"  to Color(0xFFFF8000),  // Orange
-        "S"  to Color(0xFFFFFF30),  // Yellow
-        "B"  to Color(0xFFFFB5B5),  // Salmon
-        "LI" to Color(0xFFCC80FF),  // Violet
-        "NA" to Color(0xFFAB5CF2),  // Violet
-        "K"  to Color(0xFF8F40D4),  // Violet
-        "BE" to Color(0xFFC2FF00),  // Yellow-green
-        "MG" to Color(0xFF8AFF00),  // Green
-        "CA" to Color(0xFF3DFF00),  // Green
-        "TI" to Color(0xFFBFC2C7),  // Gray
-        "CR" to Color(0xFF8A99C7),  // Steel blue
-        "MN" to Color(0xFF9C7AC7),  // Purple
-        "FE" to Color(0xFFE06633),  // Orange
-        "CO" to Color(0xFFF090A0),  // Pink
-        "NI" to Color(0xFF50D050),  // Green
-        "CU" to Color(0xFFC88033),  // Copper
-        "ZN" to Color(0xFF7D80B0),  // Slate
-        "SE" to Color(0xFFFFA100),  // Orange
-        "AG" to Color(0xFFC0C0C0),  // Silver
-        "AU" to Color(0xFFFFD123),  // Gold
-        "PT" to Color(0xFFD0D0E0),  // Light gray
+        "H"  to Color(0xFFFFFFFF),
+        "HE" to Color(0xFFD9FFFF),
+        "LI" to Color(0xFFCC80FF),
+        "BE" to Color(0xFFC2FF00),
+        "B"  to Color(0xFFFFB5B5),
+        "C"  to Color(0xFF909090),
+        "N"  to Color(0xFF3050F8),
+        "O"  to Color(0xFFFF0D0D),
+        "F"  to Color(0xFF90E050),
+        "NE" to Color(0xFFB3E3F5),
+        "NA" to Color(0xFFAB5CF2),
+        "MG" to Color(0xFF8AFF00),
+        "AL" to Color(0xFFBFA6A6),
+        "SI" to Color(0xFFF0C8A0),
+        "P"  to Color(0xFFFF8000),
+        "S"  to Color(0xFFFFFF30),
+        "CL" to Color(0xFF1FF01F),
+        "AR" to Color(0xFF80D1E3),
+        "K"  to Color(0xFF8F40D4),
+        "CA" to Color(0xFF3DFF00),
+        "SC" to Color(0xFFE6E6E6),
+        "TI" to Color(0xFFBFC2C7),
+        "V"  to Color(0xFFA6A6AB),
+        "CR" to Color(0xFF8A99C7),
+        "MN" to Color(0xFF9C7AC7),
+        "FE" to Color(0xFFE06633),
+        "CO" to Color(0xFFF090A0),
+        "NI" to Color(0xFF50D050),
+        "CU" to Color(0xFFC88033),
+        "ZN" to Color(0xFF7D80B0),
+        "GA" to Color(0xFFC28F8F),
+        "GE" to Color(0xFF668F8F),
+        "AS" to Color(0xFFBD80E3),
+        "SE" to Color(0xFFFFA100),
+        "BR" to Color(0xFFA62929),
+        "KR" to Color(0xFF5CB8D1),
+        "RB" to Color(0xFF702EB0),
+        "SR" to Color(0xFF00FF00),
+        "Y"  to Color(0xFF94FFFF),
+        "ZR" to Color(0xFF94E0E0),
+        "MO" to Color(0xFF54B5B5),
+        "AG" to Color(0xFFC0C0C0),
+        "CD" to Color(0xFFFFD98F),
+        "IN" to Color(0xFFA67573),
+        "SN" to Color(0xFF668080),
+        "SB" to Color(0xFF9E63B5),
+        "TE" to Color(0xFFD47A00),
+        "I"  to Color(0xFF940094),
+        "XE" to Color(0xFF429EB0),
+        "BA" to Color(0xFF00C900),
+        "PT" to Color(0xFFD0D0E0),
+        "AU" to Color(0xFFFFD123),
+        "HG" to Color(0xFFB8B8D0),
+        "PB" to Color(0xFF575961),
+        "BI" to Color(0xFF9E4FB5),
     )
 
-    private val DEFAULT = Color(0xFFFF1493) // Deep pink
+    private val DEFAULT = Color(0xFFDD77FF)
 
     fun getColor(element: String): Color {
         return colorMap[element.uppercase().trim()] ?: DEFAULT
