@@ -6,20 +6,18 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
+import android.view.MotionEvent
 import android.view.PixelCopy
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,12 +25,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,12 +43,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,11 +59,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.music42.swiftyprotein.data.model.Atom
 import com.music42.swiftyprotein.data.model.Ligand
 import io.github.sceneview.Scene
-import io.github.sceneview.node.MeshNode
-import io.github.sceneview.rememberCameraManipulator
+import io.github.sceneview.SceneView
 import io.github.sceneview.rememberCameraNode
 import io.github.sceneview.rememberEngine
-import io.github.sceneview.rememberEnvironmentLoader
 import io.github.sceneview.rememberMaterialLoader
 import java.io.File
 
@@ -72,6 +74,7 @@ fun ProteinViewScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    var zoomFactor by remember(uiState.ligand?.id) { mutableFloatStateOf(1f) }
 
     Scaffold(
         topBar = {
@@ -116,6 +119,7 @@ fun ProteinViewScreen(
                         Text("Loading $ligandId...")
                     }
                 }
+
                 uiState.errorMessage != null -> {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
@@ -130,49 +134,71 @@ fun ProteinViewScreen(
                         Text(uiState.errorMessage!!)
                     }
                 }
+
                 uiState.ligand != null -> {
-                    MoleculeViewer(
-                        ligand = uiState.ligand!!,
-                        mode = uiState.visualizationMode,
-                        selectedAtom = uiState.selectedAtom,
-                        onAtomSelected = viewModel::onAtomSelected,
-                        onDismissAtom = viewModel::dismissAtomInfo,
-                        modifier = Modifier.fillMaxSize()
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(16.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        VisualizationMode.entries.forEach { mode ->
-                            FilterChip(
-                                selected = uiState.visualizationMode == mode,
-                                onClick = { viewModel.setVisualizationMode(mode) },
-                                label = {
-                                    Text(
-                                        when (mode) {
-                                            VisualizationMode.BALL_AND_STICK -> "Ball & Stick"
-                                            VisualizationMode.SPACE_FILL -> "Space Fill"
-                                            VisualizationMode.STICKS_ONLY -> "Sticks"
-                                        },
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
-                                }
-                            )
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        MoleculeViewer(
+                            ligand = uiState.ligand!!,
+                            mode = uiState.visualizationMode,
+                            zoomFactor = zoomFactor,
+                            onZoomFactorChange = { zoomFactor = it },
+                            selectedAtom = uiState.selectedAtom,
+                            onAtomSelected = viewModel::onAtomSelected,
+                            onDismissAtom = viewModel::dismissAtomInfo,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(bottom = 84.dp)
+                        )
+                        if (uiState.selectedAtom != null) {
+                            Box(modifier = Modifier.align(Alignment.TopCenter)) {
+                                AtomTooltip(
+                                    atom = uiState.selectedAtom!!,
+                                    onDismiss = viewModel::dismissAtomInfo
+                                )
+                            }
                         }
-                    }
 
-                    if (uiState.selectedAtom != null) {
-                        Box(modifier = Modifier.align(Alignment.TopCenter)) {
-                            AtomTooltip(
-                                atom = uiState.selectedAtom!!,
-                                onDismiss = viewModel::dismissAtomInfo
-                            )
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
+                                .padding(horizontal = 10.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            VisualizationMode.entries.forEach { mode ->
+                                FilterChip(
+                                    selected = uiState.visualizationMode == mode,
+                                    onClick = { viewModel.setVisualizationMode(mode) },
+                                    label = {
+                                        Text(
+                                            when (mode) {
+                                                VisualizationMode.BALL_AND_STICK -> "Ball & Stick"
+                                                VisualizationMode.SPACE_FILL -> "Space Fill"
+                                                VisualizationMode.STICKS_ONLY -> "Sticks"
+                                            },
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            FilledTonalIconButton(
+                                onClick = { zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f) },
+                                modifier = Modifier.size(34.dp)
+                            ) {
+                                Icon(Icons.Default.Remove, contentDescription = "Zoom out")
+                            }
+                            Spacer(modifier = Modifier.width(6.dp))
+                            FilledTonalIconButton(
+                                onClick = { zoomFactor = (zoomFactor * 1.2f).coerceIn(0.3f, 5.0f) },
+                                modifier = Modifier.size(34.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Zoom in")
+                            }
                         }
                     }
                 }
@@ -185,6 +211,8 @@ fun ProteinViewScreen(
 private fun MoleculeViewer(
     ligand: Ligand,
     mode: VisualizationMode,
+    zoomFactor: Float,
+    onZoomFactorChange: (Float) -> Unit,
     selectedAtom: Atom?,
     onAtomSelected: (Atom?) -> Unit,
     onDismissAtom: () -> Unit,
@@ -209,39 +237,98 @@ private fun MoleculeViewer(
     }
 
     val cameraNode = rememberCameraNode(engine).apply {
-        val maxCoord = ligand.atoms.maxOfOrNull {
-            maxOf(
-                kotlin.math.abs(it.x),
-                kotlin.math.abs(it.y),
-                kotlin.math.abs(it.z)
-            )
-        } ?: 5f
-        position = io.github.sceneview.math.Position(0f, 0f, maxCoord * 2.5f)
+        near = 0.1f
+        far = 1000.0f
     }
 
-    val cameraManipulator = rememberCameraManipulator(
-        orbitHomePosition = cameraNode.position
-    )
+    val maxCoord = ligand.atoms.maxOfOrNull {
+        maxOf(
+            kotlin.math.abs(it.x),
+            kotlin.math.abs(it.y),
+            kotlin.math.abs(it.z)
+        )
+    } ?: 5f
+    val baseCameraDistance = maxCoord * 2.5f
+    val distance = (baseCameraDistance / zoomFactor).coerceIn(baseCameraDistance * 0.3f, baseCameraDistance * 4f)
+    val lastCameraVector = remember(ligand.id) { floatArrayOf(0f, 0f, baseCameraDistance) }
+    val cameraPosition = remember(ligand.id, zoomFactor) {
+        val x = lastCameraVector[0]
+        val y = lastCameraVector[1]
+        val z = lastCameraVector[2]
+        val len = kotlin.math.sqrt(x * x + y * y + z * z)
+        if (len > 0.0001f) {
+            io.github.sceneview.math.Position(
+                x / len * distance,
+                y / len * distance,
+                z / len * distance
+            )
+        } else {
+            io.github.sceneview.math.Position(0f, 0f, distance)
+        }
+    }
+    cameraNode.position = cameraPosition
 
-    Box(modifier = modifier) {
+    val cameraManipulator = remember(ligand.id, zoomFactor) {
+        SceneView.createDefaultCameraManipulator(
+            orbitHomePosition = cameraPosition,
+            targetPosition = io.github.sceneview.math.Position(0f, 0f, 0f)
+        )
+    }
+
+    Box(
+        modifier = modifier
+            .background(Color.White)
+    ) {
         Scene(
             modifier = Modifier.fillMaxSize(),
             engine = engine,
+            isOpaque = false,
             materialLoader = materialLoader,
             cameraNode = cameraNode,
             cameraManipulator = cameraManipulator,
             childNodes = listOf(parentNode),
-            onFrame = { }
+            onTouchEvent = { event, _ ->
+                if (event.actionMasked == MotionEvent.ACTION_SCROLL) {
+                    val wheel = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
+                    val genericScroll = event.getAxisValue(MotionEvent.AXIS_SCROLL)
+                    val hScroll = event.getAxisValue(MotionEvent.AXIS_HSCROLL)
+                    val scroll = if (wheel != 0f) wheel else genericScroll
+                    if (scroll != 0f && kotlin.math.abs(scroll) >= kotlin.math.abs(hScroll)) {
+                        val next = if (scroll > 0f) {
+                            (zoomFactor * 1.12f).coerceIn(0.3f, 5.0f)
+                        } else {
+                            (zoomFactor / 1.12f).coerceIn(0.3f, 5.0f)
+                        }
+                        onZoomFactorChange(next)
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            },
+            onViewCreated = {
+                renderer.clearOptions = renderer.clearOptions.apply {
+                    clear = true
+                    clearColor = floatArrayOf(1f, 1f, 1f, 1f)
+                }
+            },
+            onFrame = {
+                val p = cameraNode.position
+                lastCameraVector[0] = p.x
+                lastCameraVector[1] = p.y
+                lastCameraVector[2] = p.z
+            }
         )
 
         if (selectedAtom != null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { onDismissAtom() }
+                    .pointerInput(selectedAtom) {
+                        detectTapGestures(onTap = { onDismissAtom() })
+                    }
             )
         }
     }
