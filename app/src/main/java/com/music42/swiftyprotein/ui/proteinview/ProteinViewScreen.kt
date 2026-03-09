@@ -10,7 +10,6 @@ import android.view.MotionEvent
 import android.view.PixelCopy
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,7 +53,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -196,7 +194,10 @@ fun ProteinViewScreen(
                                 .padding(bottom = 84.dp)
                         )
                         if (uiState.selectedAtom != null) {
-                            Box(modifier = Modifier.align(Alignment.TopCenter)) {
+                            androidx.compose.ui.window.Popup(
+                                alignment = Alignment.TopCenter,
+                                onDismissRequest = { viewModel.dismissAtomInfo() }
+                            ) {
                                 AtomTooltip(
                                     atom = uiState.selectedAtom!!,
                                     onDismiss = viewModel::dismissAtomInfo
@@ -274,16 +275,9 @@ private fun MoleculeViewer(
         MoleculeSceneBuilder.build(engine, materialLoader, ligand, mode)
     }
 
-    remember(atomNodeMap) {
-        atomNodeMap.forEach { (meshNode, atom) ->
-            meshNode.isTouchable = true
-            meshNode.onSingleTapConfirmed = { _ ->
-                onAtomSelected(atom)
-                true
-            }
-        }
-        true
-    }
+    val tapDownPos = remember { floatArrayOf(0f, 0f) }
+    val tapDownTime = remember { longArrayOf(0L) }
+    val sceneViewRef = remember { arrayOfNulls<SceneView>(1) }
 
     val cameraNode = rememberCameraNode(engine).apply {
         near = 0.1f
@@ -337,27 +331,64 @@ private fun MoleculeViewer(
             cameraManipulator = cameraManipulator,
             childNodes = listOf(parentNode),
             onTouchEvent = { event, _ ->
-                if (event.actionMasked == MotionEvent.ACTION_SCROLL) {
-                    val wheel = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
-                    val genericScroll = event.getAxisValue(MotionEvent.AXIS_SCROLL)
-                    val hScroll = event.getAxisValue(MotionEvent.AXIS_HSCROLL)
-                    val scroll = if (wheel != 0f) wheel else genericScroll
-                    if (scroll != 0f && kotlin.math.abs(scroll) >= kotlin.math.abs(hScroll)) {
-                        val next = if (scroll > 0f) {
-                            (zoomFactor * 1.12f).coerceIn(0.3f, 5.0f)
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_SCROLL -> {
+                        val wheel = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
+                        val genericScroll = event.getAxisValue(MotionEvent.AXIS_SCROLL)
+                        val hScroll = event.getAxisValue(MotionEvent.AXIS_HSCROLL)
+                        val scroll = if (wheel != 0f) wheel else genericScroll
+                        if (scroll != 0f && kotlin.math.abs(scroll) >= kotlin.math.abs(hScroll)) {
+                            val next = if (scroll > 0f) {
+                                (zoomFactor * 1.12f).coerceIn(0.3f, 5.0f)
+                            } else {
+                                (zoomFactor / 1.12f).coerceIn(0.3f, 5.0f)
+                            }
+                            onZoomFactorChange(next)
+                            true
                         } else {
-                            (zoomFactor / 1.12f).coerceIn(0.3f, 5.0f)
+                            false
                         }
-                        onZoomFactorChange(next)
-                        true
-                    } else {
+                    }
+                    MotionEvent.ACTION_DOWN -> {
+                        tapDownPos[0] = event.x
+                        tapDownPos[1] = event.y
+                        tapDownTime[0] = event.eventTime
                         false
                     }
-                } else {
-                    false
+                    MotionEvent.ACTION_UP -> {
+                        val dx = event.x - tapDownPos[0]
+                        val dy = event.y - tapDownPos[1]
+                        val moveDist = kotlin.math.sqrt(dx * dx + dy * dy)
+                        val elapsed = event.eventTime - tapDownTime[0]
+                        val sv = sceneViewRef[0]
+                        if (moveDist < 40f && elapsed < 500L && sv != null && sv.width > 0 && sv.height > 0) {
+                            val tapNormX = event.x / sv.width.toFloat()
+                            val tapNormY = 1f - event.y / sv.height.toFloat()
+                            var closestAtom: Atom? = null
+                            var closestDist = Float.MAX_VALUE
+                            for ((meshNode, atom) in atomNodeMap) {
+                                val viewPos = cameraNode.worldToView(meshNode.worldPosition)
+                                val ddx = tapNormX - viewPos.x
+                                val ddy = tapNormY - viewPos.y
+                                val d = kotlin.math.sqrt(ddx * ddx + ddy * ddy)
+                                if (d < closestDist) {
+                                    closestDist = d
+                                    closestAtom = atom
+                                }
+                            }
+                            if (closestAtom != null && closestDist < 0.12f) {
+                                onAtomSelected(closestAtom)
+                            } else {
+                                onDismissAtom()
+                            }
+                        }
+                        false
+                    }
+                    else -> false
                 }
             },
             onViewCreated = {
+                sceneViewRef[0] = this
                 renderer.clearOptions = renderer.clearOptions.apply {
                     clear = true
                     clearColor = floatArrayOf(1f, 1f, 1f, 1f)
@@ -371,15 +402,6 @@ private fun MoleculeViewer(
             }
         )
 
-        if (selectedAtom != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pointerInput(selectedAtom) {
-                        detectTapGestures(onTap = { onDismissAtom() })
-                    }
-            )
-        }
     }
 }
 

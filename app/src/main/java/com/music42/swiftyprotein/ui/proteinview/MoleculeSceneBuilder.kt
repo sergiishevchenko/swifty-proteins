@@ -10,6 +10,8 @@ import dev.romainguy.kotlin.math.Quaternion
 import dev.romainguy.kotlin.math.normalize
 import dev.romainguy.kotlin.math.cross
 import dev.romainguy.kotlin.math.dot
+import io.github.sceneview.collision.Sphere as CollisionSphere
+import io.github.sceneview.collision.Vector3 as CollisionVector3
 import io.github.sceneview.geometries.Cylinder
 import io.github.sceneview.geometries.Sphere
 import io.github.sceneview.loaders.MaterialLoader
@@ -84,6 +86,10 @@ object MoleculeSceneBuilder {
                         atom.z - centerZ
                     )
                     isTouchable = true
+                    collisionShape = CollisionSphere(
+                        radius * 1.5f,
+                        CollisionVector3(0f, 0f, 0f)
+                    )
                 }
 
                 parentNode.addChildNode(meshNode)
@@ -210,6 +216,7 @@ object MoleculeSceneBuilder {
         ).apply {
             position = Position(center.x, center.y, center.z)
             quaternion = cylinderQuaternion(direction)
+            isTouchable = false
         }
 
         parent.addChildNode(meshNode)
