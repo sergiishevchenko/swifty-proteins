@@ -74,6 +74,7 @@ fun ProteinViewScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val safeLigandId = ligandId.substringBefore(" -").trim().ifEmpty { ligandId.trim() }
     var zoomFactor by remember(uiState.ligand?.id) { mutableFloatStateOf(1f) }
 
     Scaffold(
@@ -81,7 +82,8 @@ fun ProteinViewScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = uiState.ligand?.let { "${it.id} - ${it.name}" } ?: ligandId,
+                        text = uiState.ligand?.id?.substringBefore(" -")?.trim().orEmpty()
+                            .ifEmpty { safeLigandId },
                         maxLines = 1
                     )
                 },
@@ -92,7 +94,7 @@ fun ProteinViewScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        shareModelScreenshot(context, ligandId)
+                        shareModelScreenshot(context, safeLigandId)
                     }) {
                         Icon(Icons.Default.Share, contentDescription = "Share")
                     }
@@ -116,7 +118,7 @@ fun ProteinViewScreen(
                     ) {
                         CircularProgressIndicator(modifier = Modifier.size(48.dp))
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("Loading $ligandId...")
+                        Text("Loading $safeLigandId...")
                     }
                 }
 
