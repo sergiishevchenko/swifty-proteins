@@ -12,34 +12,38 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
+    primary = BrandGreen,
+    secondary = Color(0xFF9BD89B),
+    tertiary = Color(0xFF8FC48F),
     background = DarkBackground,
     surface = DarkSurface,
     surfaceVariant = DarkSurfaceVariant,
     onPrimary = Color.White,
     onBackground = Color.White,
     onSurface = Color.White,
-    onSurfaceVariant = Color(0xFFCAC4D0)
+    onSurfaceVariant = Color(0xFFC0D3C0),
+    primaryContainer = BrandGreenDark,
+    onPrimaryContainer = Color(0xFFDDF4DD)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = Color(0xFFF8F8FF),
-    surface = Color.White,
-    surfaceVariant = Color(0xFFE7E0EC),
+    primary = BrandGreen,
+    secondary = Color(0xFF4F7D4F),
+    tertiary = Color(0xFF5F8A5F),
+    background = LightBackground,
+    surface = LightSurface,
+    surfaceVariant = LightSurfaceVariant,
     onPrimary = Color.White,
     onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F)
+    onSurface = Color(0xFF1C1B1F),
+    primaryContainer = BrandGreenContainer,
+    onPrimaryContainer = Color(0xFF0B2A0B)
 )
 
 @Composable
 fun SwiftyProteinTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
