@@ -7,19 +7,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,6 +35,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -102,7 +104,13 @@ fun ProteinListScreen(
                         CircularProgressIndicator()
                     }
                 } else {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 12.dp,
+                            vertical = 8.dp
+                        )
+                    ) {
                         items(
                             items = uiState.filteredLigands,
                             key = { it }
@@ -112,7 +120,7 @@ fun ProteinListScreen(
                                 isLoading = uiState.loadingLigandId == ligandId,
                                 onClick = { viewModel.onLigandClick(ligandId) }
                             )
-                            HorizontalDivider()
+                            Spacer(modifier = Modifier.size(8.dp))
                         }
                     }
                 }
@@ -167,21 +175,33 @@ private fun LigandItem(
     isLoading: Boolean,
     onClick: () -> Unit
 ) {
-    ListItem(
-        headlineContent = {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+            .clickable(enabled = !isLoading, onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
             Text(
                 text = ligandId,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.SemiBold
             )
-        },
-        trailingContent = {
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .align(Alignment.CenterEnd),
+                    strokeWidth = 2.dp
+                )
             }
-        },
-        modifier = Modifier.clickable(enabled = !isLoading, onClick = onClick),
-        colors = ListItemDefaults.colors(
-            containerColor = Color.Transparent
-        )
-    )
+        }
+    }
 }
