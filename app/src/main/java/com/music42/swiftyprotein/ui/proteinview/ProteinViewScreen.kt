@@ -169,7 +169,7 @@ fun ProteinViewScreen(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            VisualizationMode.entries.forEach { mode ->
+                            VisualizationMode.entries.forEachIndexed { index, mode ->
                                 FilterChip(
                                     selected = uiState.visualizationMode == mode,
                                     onClick = { viewModel.setVisualizationMode(mode) },
@@ -184,8 +184,11 @@ fun ProteinViewScreen(
                                         )
                                     }
                                 )
+                                if (index != VisualizationMode.entries.lastIndex) {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                }
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(14.dp))
                             FilledTonalIconButton(
                                 onClick = { zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f) },
                                 modifier = Modifier.size(34.dp)

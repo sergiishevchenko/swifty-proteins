@@ -10,7 +10,7 @@ object CpkColors {
         "LI" to Color(0xFFCC80FF),
         "BE" to Color(0xFFC2FF00),
         "B"  to Color(0xFFFFB5B5),
-        "C"  to Color(0xFF33CC33),
+        "C"  to Color(0xFF1F8F1F),
         "N"  to Color(0xFF3050F8),
         "O"  to Color(0xFFFF0D0D),
         "F"  to Color(0xFF90E050),
@@ -62,7 +62,7 @@ object CpkColors {
         "BI" to Color(0xFF9E4FB5),
     )
 
-    private val DEFAULT = Color(0xFF33CC33)
+    private val DEFAULT = Color(0xFF1F8F1F)
 
     fun getColor(element: String): Color {
         val normalized = element.uppercase().trim().replace(Regex("[^A-Z]"), "")
