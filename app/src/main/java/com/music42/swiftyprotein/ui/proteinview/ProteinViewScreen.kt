@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,11 +32,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -55,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -77,10 +78,16 @@ fun ProteinViewScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val sceneTint = if (MaterialTheme.colorScheme.background.red < 0.4f) {
+        Color(0xFF151A20)
+    } else {
+        Color(0xFFF3F5F7)
+    }
     val safeLigandId = ligandId.substringBefore(" -").trim().ifEmpty { ligandId.trim() }
     var zoomFactor by remember(uiState.ligand?.id) { mutableFloatStateOf(1f) }
 
     Scaffold(
+        containerColor = sceneTint,
         topBar = {
             TopAppBar(
                 title = {
@@ -103,7 +110,10 @@ fun ProteinViewScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.primary,
+                    actionIconContentColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -112,6 +122,7 @@ fun ProteinViewScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .background(sceneTint)
         ) {
             when {
                 uiState.isLoading -> {
@@ -180,7 +191,11 @@ fun ProteinViewScreen(
                 }
 
                 uiState.ligand != null -> {
-                    Box(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
                         MoleculeViewer(
                             ligand = uiState.ligand!!,
                             mode = uiState.visualizationMode,
@@ -189,65 +204,115 @@ fun ProteinViewScreen(
                             selectedAtom = uiState.selectedAtom,
                             onAtomSelected = viewModel::onAtomSelected,
                             onDismissAtom = viewModel::dismissAtomInfo,
+                            sceneBackground = sceneTint,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(bottom = 84.dp)
+                                .padding(bottom = 92.dp)
+                                .clip(RoundedCornerShape(24.dp))
                         )
                         if (uiState.selectedAtom != null) {
                             androidx.compose.ui.window.Popup(
-                                alignment = Alignment.TopCenter,
+                                alignment = Alignment.TopStart,
                                 onDismissRequest = { viewModel.dismissAtomInfo() }
                             ) {
-                                AtomTooltip(
-                                    atom = uiState.selectedAtom!!,
-                                    onDismiss = viewModel::dismissAtomInfo
-                                )
+                                Box(modifier = Modifier.padding(start = 8.dp, top = 8.dp)) {
+                                    AtomTooltip(
+                                        atom = uiState.selectedAtom!!,
+                                        onDismiss = viewModel::dismissAtomInfo
+                                    )
+                                }
                             }
                         }
 
-                        Row(
+                        androidx.compose.ui.window.Popup(alignment = Alignment.TopEnd) {
+                            Column(
+                                modifier = Modifier.padding(end = 8.dp, top = 8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Card(
+                                    modifier = Modifier.size(42.dp),
+                                    shape = CircleShape,
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.primary
+                                    )
+                                ) {
+                                    IconButton(
+                                        onClick = { zoomFactor = (zoomFactor * 1.2f).coerceIn(0.3f, 5.0f) },
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Add,
+                                            contentDescription = "Zoom in",
+                                            tint = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Card(
+                                    modifier = Modifier.size(42.dp),
+                                    shape = CircleShape,
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.primary
+                                    )
+                                ) {
+                                    IconButton(
+                                        onClick = { zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f) },
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Remove,
+                                            contentDescription = "Zoom out",
+                                            tint = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Card(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
-                                .padding(horizontal = 10.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(horizontal = 4.dp, vertical = 4.dp),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                         ) {
-                            VisualizationMode.entries.forEachIndexed { index, mode ->
-                                FilterChip(
-                                    selected = uiState.visualizationMode == mode,
-                                    onClick = { viewModel.setVisualizationMode(mode) },
-                                    label = {
-                                        Text(
-                                            when (mode) {
-                                                VisualizationMode.BALL_AND_STICK -> "Ball & Stick"
-                                                VisualizationMode.SPACE_FILL -> "Space Fill"
-                                                VisualizationMode.STICKS_ONLY -> "Sticks"
-                                            },
-                                            style = MaterialTheme.typography.labelSmall
-                                        )
-                                    }
-                                )
-                                if (index != VisualizationMode.entries.lastIndex) {
-                                    Spacer(modifier = Modifier.width(8.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                VisualizationMode.entries.forEach { mode ->
+                                    FilterChip(
+                                        modifier = Modifier.weight(1f),
+                                        selected = uiState.visualizationMode == mode,
+                                        onClick = { viewModel.setVisualizationMode(mode) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        ),
+                                        label = {
+                                            Text(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                text = when (mode) {
+                                                    VisualizationMode.BALL_AND_STICK -> "Ball & Stick"
+                                                    VisualizationMode.SPACE_FILL -> "Space Fill"
+                                                    VisualizationMode.STICKS_ONLY -> "Sticks"
+                                                },
+                                                style = MaterialTheme.typography.labelSmall,
+                                                textAlign = TextAlign.Center,
+                                                maxLines = 1
+                                            )
+                                        }
+                                    )
                                 }
-                            }
-                            Spacer(modifier = Modifier.width(14.dp))
-                            FilledTonalIconButton(
-                                onClick = { zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f) },
-                                modifier = Modifier.size(34.dp)
-                            ) {
-                                Icon(Icons.Default.Remove, contentDescription = "Zoom out")
-                            }
-                            Spacer(modifier = Modifier.width(6.dp))
-                            FilledTonalIconButton(
-                                onClick = { zoomFactor = (zoomFactor * 1.2f).coerceIn(0.3f, 5.0f) },
-                                modifier = Modifier.size(34.dp)
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = "Zoom in")
                             }
                         }
                     }
@@ -266,6 +331,7 @@ private fun MoleculeViewer(
     selectedAtom: Atom?,
     onAtomSelected: (Atom?) -> Unit,
     onDismissAtom: () -> Unit,
+    sceneBackground: Color,
     modifier: Modifier = Modifier
 ) {
     val engine = rememberEngine()
@@ -320,7 +386,7 @@ private fun MoleculeViewer(
 
     Box(
         modifier = modifier
-            .background(Color.White)
+            .background(sceneBackground)
     ) {
         Scene(
             modifier = Modifier.fillMaxSize(),
@@ -391,7 +457,12 @@ private fun MoleculeViewer(
                 sceneViewRef[0] = this
                 renderer.clearOptions = renderer.clearOptions.apply {
                     clear = true
-                    clearColor = floatArrayOf(1f, 1f, 1f, 1f)
+                    clearColor = floatArrayOf(
+                        sceneBackground.red,
+                        sceneBackground.green,
+                        sceneBackground.blue,
+                        1f
+                    )
                 }
             },
             onFrame = {
@@ -412,9 +483,8 @@ private fun AtomTooltip(
 ) {
     Box(
         modifier = Modifier
-            .padding(top = 16.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.inverseSurface)
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .clickable { onDismiss() }
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
@@ -423,17 +493,17 @@ private fun AtomTooltip(
                 text = atom.element,
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.inverseOnSurface
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Text(
                 text = atom.elementName,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
             )
             Text(
                 text = "Atom: ${atom.id}",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
             )
         }
     }
