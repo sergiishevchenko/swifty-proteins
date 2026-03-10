@@ -1,71 +1,211 @@
 # Swifty Protein (Android)
 
-Android implementation of **Swifty Protein**: browse ligands and visualize them in interactive 3D using data from the RCSB Protein Data Bank.
+Android implementation of the Swifty Protein assignment: authentication, searchable ligand catalog, and interactive 3D molecular visualization.
 
-## About This Project
+## Overview
 
-This app was built for the Swifty Protein assignment and covers:
+The application is built as a classic Android app using Jetpack Compose and MVVM.  
+Main user flow:
 
-- mobile 3D rendering
-- biometric authentication with password fallback
-- searchable ligand catalog
-- robust loading/error flows
-- model sharing from the 3D screen
+1. User opens app and sees splash.
+2. User logs in (password or fingerprint).
+3. User searches/selects a ligand from local list.
+4. App downloads ligand data from RCSB.
+5. App parses molecular data and renders interactive 3D scene.
+6. User explores model (zoom/rotate/mode switch), taps atoms for tooltip, and can share screenshot.
 
-## Assignment Coverage (Mandatory + Bonus)
+## Implemented Features
 
-### Mandatory
+### Authentication
 
-- ✅ Themed app icon
-- ✅ Launch/splash screen with visible duration
-- ✅ Login view shown when app is launched and when returning from background
-- ✅ Local account creation and password login
-- ✅ Fingerprint login (when biometric hardware is available)
-- ✅ Auth failed popup
-- ✅ Password fallback when biometric is unavailable
-- ✅ Ligand list loaded from `ligands.txt`
-- ✅ Search in ligand list
-- ✅ Warning popup when ligand cannot be loaded
-- ✅ Loading indicator while fetching ligand data
-- ✅ 3D ligand rendering
-- ✅ CPK atom coloring
-- ✅ Ball-and-Stick representation
-- ✅ Atom tooltip/popup on tap, dismissed by tapping elsewhere
-- ✅ Model sharing via Share button
-- ✅ User can rotate/zoom the molecule
+- Local account registration and login.
+- SHA-256 password hashing before DB storage.
+- Fingerprint login via AndroidX Biometric (`BiometricManager` + `BiometricPrompt`).
+- Password fallback when biometric is unavailable.
+- Error popup on failed authentication.
+- Login screen is shown again when app returns from background.
 
-### Bonus
+### Ligand Catalog
 
-- ✅ Additional visualization modes:
+- Ligand IDs are loaded from local `res/raw/ligands.txt`.
+- Search by substring (case-insensitive).
+- Empty search state message.
+- Loading/error handling for selection and fetch failures.
+
+### 3D Viewer
+
+- 3D rendering with SceneView (Filament backend).
+- CPK atom coloring.
+- Visualization modes:
+  - Ball & Stick (default)
   - Space Fill
-  - Sticks Only
+  - Sticks
+- Atom selection with tooltip popup (symbol, element name, atom ID).
+- Dismiss tooltip by tapping elsewhere.
+- Zoom controls (`+` / `-`) and pointer scroll zoom.
+- Camera orbit/rotate interactions.
+
+### Sharing
+
+- Share button captures screenshot with `PixelCopy`.
+- Shares PNG via `FileProvider`.
+- Fallback to text-only share if screenshot capture fails.
+
+### UI / UX
+
+- Splash screen with enforced visible duration (~2s).
+- Material 3 styling across screens.
+- Model loading card with progress indicators and rotating status messages.
+- Themed icon and round icon.
+
+## Compliance Snapshot
+
+- Mandatory requirements: implemented.
+- Bonus requirement (alternative visualization modes): implemented.
+- Data source: RCSB website is used.
+- Data format note: ligand endpoint is `.cif` (details below).
 
 ## Tech Stack
 
-- **Language/UI:** Kotlin, Jetpack Compose, Material 3
+- **Language:** Kotlin
+- **UI:** Jetpack Compose + Material 3
 - **Architecture:** MVVM + Repository
 - **DI:** Hilt
-- **Local storage:** Room
+- **Local DB:** Room
 - **Networking:** Retrofit + OkHttp
 - **Biometrics:** AndroidX Biometric
-- **3D engine:** SceneView (Filament backend)
+- **3D Engine:** SceneView (Filament)
+- **Concurrency:** Kotlin Coroutines
 
-## Architecture Overview
+## Project Structure
 
-- `ui/login`  
-  Login/register screen, biometric entry point, auth error handling.
-- `ui/proteinlist`  
-  Ligand list, search filtering, loading overlay, fetch error dialog.
-- `ui/proteinview`  
-  Scene construction, atom picking, tooltip display, share flow.
-- `data/remote`  
-  RCSB API contract for `.cif` download.
-- `data/parser`  
-  mmCIF parser for atoms and bonds.
-- `data/local`  
-  Room entities/DAO for user accounts.
-- `data/repository`  
-  Auth and ligand use-cases.
+```text
+app/src/main/java/com/music42/swiftyprotein/
+├── MainActivity.kt
+├── SwiftyProteinApp.kt
+├── di/
+│   └── AppModule.kt
+├── data/
+│   ├── local/
+│   │   ├── AppDatabase.kt
+│   │   ├── UserDao.kt
+│   │   └── entity/User.kt
+│   ├── model/
+│   │   ├── Atom.kt
+│   │   ├── Bond.kt
+│   │   └── Ligand.kt
+│   ├── parser/
+│   │   └── CifParser.kt
+│   ├── remote/
+│   │   └── RcsbApi.kt
+│   └── repository/
+│       ├── AuthRepository.kt
+│       └── LigandRepository.kt
+├── ui/
+│   ├── navigation/
+│   │   ├── NavGraph.kt
+│   │   └── Screen.kt
+│   ├── login/
+│   │   ├── LoginScreen.kt
+│   │   └── LoginViewModel.kt
+│   ├── proteinlist/
+│   │   ├── ProteinListScreen.kt
+│   │   └── ProteinListViewModel.kt
+│   ├── proteinview/
+│   │   ├── MoleculeSceneBuilder.kt
+│   │   ├── ProteinViewScreen.kt
+│   │   └── ProteinViewViewModel.kt
+│   └── theme/
+│       ├── Color.kt
+│       ├── Theme.kt
+│       └── Type.kt
+└── util/
+    ├── BiometricHelper.kt
+    └── CpkColors.kt
+```
+
+## Data Flow
+
+1. `ProteinListViewModel` reads ligand IDs from `LigandRepository`.
+2. On selection, navigation opens `ProteinViewScreen` with `ligandId`.
+3. `ProteinViewViewModel` loads ligand via `LigandRepository.fetchLigand(...)`.
+4. `LigandRepository` downloads CIF from RCSB through `RcsbApi`.
+5. `CifParser` extracts ligand name, atoms, bonds.
+6. `MoleculeSceneBuilder` converts model into SceneView mesh nodes.
+7. UI renders interactive scene and atom interactions.
+
+## Molecular Rendering Details
+
+- Atoms are rendered as spheres.
+- Bonds are rendered as cylinders.
+- Double/triple/aromatic bonds are rendered with parallel sticks.
+- Bonds are color-split by connected atoms (half-and-half coloring).
+- Hydrogen and deuterium are filtered out for rendering if non-hydrogen atoms exist.
+- Sphere nodes are touchable and include collision shapes.
+
+## Atom Picking Logic
+
+Atom tap detection uses screen-space nearest-hit logic:
+
+1. Capture touch down/up positions and timing.
+2. Treat interaction as tap only if movement and duration stay under thresholds.
+3. Project each atom node world position to normalized view coordinates.
+4. Select closest atom under selection radius threshold.
+5. If no atom is close enough, dismiss tooltip.
+
+Tooltip is shown via Compose `Popup` to guarantee proper z-order over the 3D surface.
+
+## Authentication Details
+
+- User table: `id`, `username`, `passwordHash`.
+- Registration validation:
+  - non-empty username/password
+  - minimum password length
+  - unique username
+- Login validation compares SHA-256 hash.
+- Fingerprint login requires:
+  - device biometric capability
+  - existing users
+  - entered username (must exist)
+
+## Sharing Details
+
+- Capture source: activity window via `PixelCopy`.
+- Output file: `cache/shared_images/ligand_<ID>.png`.
+- Share transport: `ACTION_SEND` + `FileProvider`.
+- Fallback: text share with RCSB ligand URL.
+
+## Data Source and Format
+
+### RCSB Endpoint Used
+
+- `https://files.rcsb.org/ligands/download/{ID}.cif`
+
+### Why CIF is used
+
+For RCSB ligand/chemical component downloads, CIF/mmCIF is the official structured format endpoint used in this app.
+
+### Quick CIF example (ligand)
+
+```text
+data_HEM
+_chem_comp.id        HEM
+_chem_comp.name      "PROTOPORPHYRIN IX CONTAINING FE"
+...
+loop_
+_chem_comp_atom.atom_id
+_chem_comp_atom.type_symbol
+_chem_comp_atom.model_Cartn_x
+...
+```
+
+### PDB vs CIF (high level)
+
+| Aspect | PDB (legacy) | mmCIF/CIF (modern) |
+|---|---|---|
+| Layout | Fixed-width lines | Named fields + tables (`loop_`) |
+| Parsing | Position-based | Key/column-based |
+| Extensibility | Limited | High |
 
 ## Requirements
 
@@ -73,45 +213,30 @@ This app was built for the Swifty Protein assignment and covers:
 - Android SDK 35
 - Min SDK 26
 - JDK 17
-- Internet connection (for ligand download)
+- Internet connection
 
-## Run Locally
+## Build Configuration
 
-1. Open the project in Android Studio.
-2. Wait for Gradle sync to complete.
-3. Run the `app` configuration on emulator/device.
-4. Register a user account.
-5. Log in (password or fingerprint if available).
-6. Select a ligand from the list to open the 3D view.
+- `compileSdk = 35`
+- `targetSdk = 35`
+- `minSdk = 26`
+- Java/Kotlin target: 17
+- `applicationId = com.music42.swiftyprotein`
 
-## How To Test Core Flows
+## Run Locally (Android Studio)
 
-### Authentication
+1. Open project in Android Studio.
+2. Let Gradle sync complete.
+3. Select emulator/device.
+4. Run `app` configuration.
+5. Register account and log in.
+6. Select ligand and open 3D screen.
 
-1. Launch app -> Login screen is displayed.
-2. Try wrong password -> "Authentication Failed" dialog appears.
-3. Register valid account -> login succeeds.
-4. Press Home, open app again -> Login screen appears again.
-5. On biometric-capable device, use fingerprint login.
+## Run From CLI
 
-### Ligand List
+From project root:
 
-1. Verify list is populated from `ligands.txt`.
-2. Type in search bar -> list filters by query.
-3. Tap ligand -> loading indicator appears.
-4. Disable internet and tap ligand -> error dialog appears.
-
-### 3D Viewer
-
-1. Molecule is rendered in 3D.
-2. Colors match CPK rules by atom element.
-3. Switch visualization modes (Ball & Stick / Space Fill / Sticks).
-4. Tap atom -> tooltip appears with element info.
-5. Tap empty area -> tooltip disappears.
-6. Pinch/drag -> zoom and rotate work.
-7. Tap Share -> model screenshot is shared.
-
-## Data Source
-
-- RCSB ligand CIF endpoint:  
-  `https://files.rcsb.org/ligands/download/{ID}.cif`
+```bash
+./gradlew assembleDebug
+./gradlew installDebug
+```
