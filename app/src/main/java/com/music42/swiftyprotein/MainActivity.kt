@@ -39,8 +39,6 @@ class MainActivity : FragmentActivity() {
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        // Mark background only when the user actually leaves the app (Home/Recents).
-        // This avoids forcing Login after transient system UI (dialogs/share sheets).
         wasInBackground = true
     }
 

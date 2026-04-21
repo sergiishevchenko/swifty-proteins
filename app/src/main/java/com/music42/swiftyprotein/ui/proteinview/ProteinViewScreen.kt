@@ -586,7 +586,6 @@ private fun MoleculeViewer(
         Scene(
             modifier = Modifier.fillMaxSize(),
             engine = engine,
-            // Opaque avoids brief black/transparent composition artifacts on SurfaceView.
             isOpaque = true,
             materialLoader = materialLoader,
             cameraNode = cameraNode,
@@ -741,16 +740,12 @@ private fun MoleculeViewer(
             },
             onViewCreated = {
                 sceneViewRef[0] = this
-                // SceneView is backed by a SurfaceView on many devices; without this, it can appear
-                // above Compose overlays (making tooltips/measure UI look like it "disappears").
                 (this as? android.view.SurfaceView)?.apply {
                     setZOrderOnTop(false)
                     setZOrderMediaOverlay(false)
-                    // Avoid brief black flash before first rendered frame.
                     holder.setFormat(PixelFormat.TRANSLUCENT)
                     setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 }
-                // Set background immediately to match Compose.
                 setBackgroundColor(
                     android.graphics.Color.argb(
                         255,
@@ -826,7 +821,6 @@ private fun MoleculeViewer(
             }
         )
 
-        // Cover the SceneView's initial black frame until first render.
         AnimatedVisibility(
             visible = !sceneReady,
             enter = fadeIn(),

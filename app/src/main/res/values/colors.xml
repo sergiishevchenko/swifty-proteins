@@ -3,6 +3,5 @@
     <color name="splash_background">#1A1B2E</color>
     <color name="splash_icon_tint">#7C4DFF</color>
     <color name="seed">#7C4DFF</color>
-    <!-- Window background to avoid black flashes before first frame -->
     <color name="app_window_background">#F3F5F7</color>
 </resources>
