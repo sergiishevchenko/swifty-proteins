@@ -38,7 +38,7 @@ fun OnboardingScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Welcome to Swifty Protein",
+                text = "Welcome to Swifty Proteins",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )

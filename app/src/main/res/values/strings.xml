@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Swifty Protein</string>
+    <string name="app_name">Swifty Proteins</string>
     <string name="login_title">Welcome</string>
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>

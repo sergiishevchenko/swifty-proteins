@@ -1,6 +1,6 @@
-# Swifty Protein (Android)
+# Swifty Proteins (Android)
 
-Android implementation of the Swifty Protein assignment: authentication, searchable ligand catalog, and interactive 3D molecular visualization.
+Android implementation of the Swifty Proteins assignment: authentication, searchable ligand catalog, and interactive 3D molecular visualization.
 
 ## Overview
 

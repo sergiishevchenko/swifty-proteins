@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SwiftyProtein"
+rootProject.name = "swifty-proteins"
 include(":app")
