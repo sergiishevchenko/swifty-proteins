@@ -6,5 +6,7 @@
         <item name="postSplashScreenTheme">@style/Theme.SwiftyProtein</item>
     </style>
 
-    <style name="Theme.SwiftyProtein" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.SwiftyProtein" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/app_window_background</item>
+    </style>
 </resources>
