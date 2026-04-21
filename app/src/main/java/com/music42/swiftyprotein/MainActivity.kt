@@ -8,8 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
-import com.music42.swiftyprotein.ui.navigation.SwiftyProteinNavHost
-import com.music42.swiftyprotein.ui.theme.SwiftyProteinTheme
+import com.music42.swiftyprotein.ui.AppRoot
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -31,17 +30,17 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            SwiftyProteinTheme {
-                SwiftyProteinNavHost(
-                    shouldShowLogin = shouldShowLogin,
-                    onLoginShown = { shouldShowLogin = false }
-                )
-            }
+            AppRoot(
+                shouldShowLogin = shouldShowLogin,
+                onLoginShown = { shouldShowLogin = false }
+            )
         }
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        // Mark background only when the user actually leaves the app (Home/Recents).
+        // This avoids forcing Login after transient system UI (dialogs/share sheets).
         wasInBackground = true
     }
 
