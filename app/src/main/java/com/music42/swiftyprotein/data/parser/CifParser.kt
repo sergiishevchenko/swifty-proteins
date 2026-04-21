@@ -10,11 +10,13 @@ object CifParser {
     fun parse(ligandId: String, cifText: String): Ligand {
         val lines = cifText.lines()
         val name = parseName(lines)
+        val formula = parseFormula(lines)
         val atoms = parseAtoms(lines)
         val bonds = parseBonds(lines)
         return Ligand(
             id = ligandId,
             name = name,
+            formula = formula,
             atoms = atoms,
             bonds = bonds
         )
@@ -25,6 +27,23 @@ object CifParser {
             val line = lines[i].trim()
             if (line.startsWith("_chem_comp.name")) {
                 val inlineValue = line.removePrefix("_chem_comp.name").trim()
+                if (inlineValue.isNotEmpty()) {
+                    return inlineValue.trim('"', '\'', ' ')
+                }
+                if (i + 1 < lines.size) {
+                    val nextLine = lines[i + 1].trim()
+                    return nextLine.trim('"', '\'', ';', ' ')
+                }
+            }
+        }
+        return ""
+    }
+
+    private fun parseFormula(lines: List<String>): String {
+        for (i in lines.indices) {
+            val line = lines[i].trim()
+            if (line.startsWith("_chem_comp.formula")) {
+                val inlineValue = line.removePrefix("_chem_comp.formula").trim()
                 if (inlineValue.isNotEmpty()) {
                     return inlineValue.trim('"', '\'', ' ')
                 }
