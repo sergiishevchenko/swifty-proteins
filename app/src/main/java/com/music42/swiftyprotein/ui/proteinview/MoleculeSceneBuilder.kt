@@ -10,6 +10,7 @@ import dev.romainguy.kotlin.math.Quaternion
 import dev.romainguy.kotlin.math.normalize
 import dev.romainguy.kotlin.math.cross
 import dev.romainguy.kotlin.math.dot
+import androidx.compose.ui.graphics.Color
 import io.github.sceneview.collision.Sphere as CollisionSphere
 import io.github.sceneview.collision.Vector3 as CollisionVector3
 import io.github.sceneview.geometries.Cylinder
@@ -38,7 +39,9 @@ object MoleculeSceneBuilder {
         engine: Engine,
         materialLoader: MaterialLoader,
         ligand: Ligand,
-        mode: VisualizationMode
+        mode: VisualizationMode,
+        highlightElement: String?,
+        centerOffset: Float3
     ): Pair<Node, Map<MeshNode, Atom>> {
         val parentNode = Node(engine)
         val atomNodeMap = mutableMapOf<MeshNode, Atom>()
@@ -52,12 +55,19 @@ object MoleculeSceneBuilder {
         val centerY = atomsForRender.map { it.y }.average().toFloat()
         val centerZ = atomsForRender.map { it.z }.average().toFloat()
 
-        if (mode != VisualizationMode.STICKS_ONLY) {
+        val highlight = highlightElement?.uppercase()?.trim()?.takeIf { it.isNotEmpty() }
+
+        if (mode != VisualizationMode.STICKS_ONLY && mode != VisualizationMode.WIREFRAME) {
             val radius = if (mode == VisualizationMode.SPACE_FILL)
                 BALL_RADIUS * 2.5f else BALL_RADIUS
 
             for (atom in atomsForRender) {
-                val color = CpkColors.getColor(atom.element)
+                val base = CpkColors.getColor(atom.element)
+                val color = when {
+                    highlight == null -> base
+                    atom.element.uppercase().trim() == highlight -> brighten(base, 1.25f)
+                    else -> dim(base, 0.45f)
+                }
                 val sphere = Sphere.Builder()
                     .radius(radius)
                     .center(Position(0f, 0f, 0f))
@@ -81,9 +91,9 @@ object MoleculeSceneBuilder {
                     materialInstance = material
                 ).apply {
                     position = Position(
-                        atom.x - centerX,
-                        atom.y - centerY,
-                        atom.z - centerZ
+                        (atom.x - centerX) - centerOffset.x,
+                        (atom.y - centerY) - centerOffset.y,
+                        (atom.z - centerZ) - centerOffset.z
                     )
                     isTouchable = true
                     collisionShape = CollisionSphere(
@@ -103,10 +113,14 @@ object MoleculeSceneBuilder {
                 val atom2 = atomById[bond.atomId2] ?: continue
 
                 val pos1 = Float3(
-                    atom1.x - centerX, atom1.y - centerY, atom1.z - centerZ
+                    (atom1.x - centerX) - centerOffset.x,
+                    (atom1.y - centerY) - centerOffset.y,
+                    (atom1.z - centerZ) - centerOffset.z
                 )
                 val pos2 = Float3(
-                    atom2.x - centerX, atom2.y - centerY, atom2.z - centerZ
+                    (atom2.x - centerX) - centerOffset.x,
+                    (atom2.y - centerY) - centerOffset.y,
+                    (atom2.z - centerZ) - centerOffset.z
                 )
                 val diff = Float3(pos2.x - pos1.x, pos2.y - pos1.y, pos2.z - pos1.z)
                 val length = sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z)
@@ -115,13 +129,21 @@ object MoleculeSceneBuilder {
                 val color1 = CpkColors.getColor(atom1.element)
                 val color2 = CpkColors.getColor(atom2.element)
 
-                val stickCount = when (bond.order) {
-                    BondOrder.SINGLE -> 1
-                    BondOrder.DOUBLE, BondOrder.AROMATIC -> 2
-                    BondOrder.TRIPLE -> 3
+                val stickCount = if (mode == VisualizationMode.WIREFRAME) {
+                    1
+                } else {
+                    when (bond.order) {
+                        BondOrder.SINGLE -> 1
+                        BondOrder.DOUBLE, BondOrder.AROMATIC -> 2
+                        BondOrder.TRIPLE -> 3
+                    }
                 }
 
-                val radius = if (stickCount > 1) MULTI_STICK_RADIUS else STICK_RADIUS
+                val radius = when {
+                    mode == VisualizationMode.WIREFRAME -> 0.02f
+                    stickCount > 1 -> MULTI_STICK_RADIUS
+                    else -> STICK_RADIUS
+                }
                 val offsets = computeOffsets(diff, stickCount)
 
                 for (offset in offsets) {
@@ -151,6 +173,21 @@ object MoleculeSceneBuilder {
         }
 
         return parentNode to atomNodeMap
+    }
+
+    private fun dim(color: Color, factor: Float): Color {
+        val f = factor.coerceIn(0f, 1f)
+        return Color(color.red * f, color.green * f, color.blue * f, 1f)
+    }
+
+    private fun brighten(color: Color, factor: Float): Color {
+        val f = factor.coerceAtLeast(1f)
+        return Color(
+            (color.red * f).coerceIn(0f, 1f),
+            (color.green * f).coerceIn(0f, 1f),
+            (color.blue * f).coerceIn(0f, 1f),
+            1f
+        )
     }
 
     private fun computeOffsets(direction: Float3, count: Int): List<Float3> {
