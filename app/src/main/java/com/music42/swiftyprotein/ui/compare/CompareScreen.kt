@@ -5,12 +5,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.music42.swiftyprotein.data.model.Ligand
 import com.music42.swiftyprotein.ui.proteinview.VisualizationMode
@@ -42,6 +48,7 @@ import io.github.sceneview.SceneView
 import io.github.sceneview.rememberCameraNode
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberMaterialLoader
+import kotlin.math.hypot
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,6 +149,53 @@ private fun ComparePanel(
                     onZoomFactorChange = { zoomFactor = it },
                     modifier = Modifier.fillMaxSize()
                 )
+
+                androidx.compose.ui.window.Popup(alignment = Alignment.BottomEnd) {
+                    Column(
+                        modifier = Modifier.padding(end = 8.dp, bottom = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Card(
+                            modifier = Modifier.size(40.dp),
+                            shape = RoundedCornerShape(999.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            IconButton(
+                                onClick = { zoomFactor = (zoomFactor * 1.2f).coerceIn(0.3f, 5.0f) },
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                Icon(
+                                    Icons.Filled.Add,
+                                    contentDescription = "Zoom in",
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Card(
+                            modifier = Modifier.size(40.dp),
+                            shape = RoundedCornerShape(999.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            IconButton(
+                                onClick = { zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f) },
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                Icon(
+                                    Icons.Filled.Remove,
+                                    contentDescription = "Zoom out",
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -187,6 +241,9 @@ private fun SimpleMoleculeViewer(
         )
     }
 
+    val twoFingerActive = remember { floatArrayOf(0f) }
+    val twoFingerSpan = remember { floatArrayOf(0f) }
+
     Scene(
         modifier = modifier,
         engine = engine,
@@ -196,16 +253,51 @@ private fun SimpleMoleculeViewer(
         cameraManipulator = cameraManipulator,
         childNodes = listOf(parentNode),
         onTouchEvent = { event, _ ->
-            if (event.actionMasked == android.view.MotionEvent.ACTION_SCROLL) {
-                val wheel = event.getAxisValue(android.view.MotionEvent.AXIS_VSCROLL)
-                val scroll = if (wheel != 0f) wheel else event.getAxisValue(android.view.MotionEvent.AXIS_SCROLL)
-                if (scroll != 0f) {
-                    val next = if (scroll > 0f) zoomFactor * 1.12f else zoomFactor / 1.12f
-                    onZoomFactorChange(next.coerceIn(0.3f, 5.0f))
-                    true
-                } else false
-            } else {
-                false
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_POINTER_DOWN -> {
+                    if (event.pointerCount == 2) {
+                        val x0 = event.getX(0)
+                        val y0 = event.getY(0)
+                        val x1 = event.getX(1)
+                        val y1 = event.getY(1)
+                        twoFingerActive[0] = 1f
+                        twoFingerSpan[0] = hypot(x1 - x0, y1 - y0).coerceAtLeast(1f)
+                        true
+                    } else false
+                }
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    if (twoFingerActive[0] == 1f && event.pointerCount == 2) {
+                        val x0 = event.getX(0)
+                        val y0 = event.getY(0)
+                        val x1 = event.getX(1)
+                        val y1 = event.getY(1)
+                        val span = hypot(x1 - x0, y1 - y0).coerceAtLeast(1f)
+                        val ratio = (span / twoFingerSpan[0]).coerceIn(0.85f, 1.15f)
+                        if (ratio != 1f) {
+                            onZoomFactorChange((zoomFactor * ratio).coerceIn(0.3f, 5.0f))
+                        }
+                        twoFingerSpan[0] = span
+                        true
+                    } else false
+                }
+                android.view.MotionEvent.ACTION_POINTER_UP,
+                android.view.MotionEvent.ACTION_UP,
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    if (twoFingerActive[0] == 1f) {
+                        twoFingerActive[0] = 0f
+                        true
+                    } else false
+                }
+                android.view.MotionEvent.ACTION_SCROLL -> {
+                    val wheel = event.getAxisValue(android.view.MotionEvent.AXIS_VSCROLL)
+                    val scroll = if (wheel != 0f) wheel else event.getAxisValue(android.view.MotionEvent.AXIS_SCROLL)
+                    if (scroll != 0f) {
+                        val next = if (scroll > 0f) zoomFactor * 1.12f else zoomFactor / 1.12f
+                        onZoomFactorChange(next.coerceIn(0.3f, 5.0f))
+                        true
+                    } else false
+                }
+                else -> false
             }
         }
     )

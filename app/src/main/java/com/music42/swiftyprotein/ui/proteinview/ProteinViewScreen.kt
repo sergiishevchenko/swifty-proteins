@@ -1089,23 +1089,38 @@ private fun MeasurementOverlay(
 
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        shape = RoundedCornerShape(999.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.88f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.padding(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            Image(
+                painter = androidx.compose.ui.res.painterResource(com.music42.swiftyprotein.R.drawable.ic_launcher_foreground),
+                contentDescription = null,
+                modifier = Modifier.size(28.dp)
+            )
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
                 modifier = Modifier.weight(1f)
             )
-            androidx.compose.material3.TextButton(onClick = onClear) {
-                Text("Reset")
-            }
+            Text(
+                text = "Reset",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .clickable(onClick = onClear)
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            )
         }
     }
 }
