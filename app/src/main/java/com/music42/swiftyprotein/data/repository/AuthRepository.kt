@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteConstraintException
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.music42.swiftyprotein.data.local.UserDao
 import com.music42.swiftyprotein.data.local.entity.User
+import com.music42.swiftyprotein.data.security.SecureStorage
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,7 +15,8 @@ sealed class AuthResult {
 
 @Singleton
 class AuthRepository @Inject constructor(
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val secureStorage: SecureStorage
 ) {
 
     suspend fun register(username: String, password: String): AuthResult {
@@ -64,11 +66,16 @@ class AuthRepository @Inject constructor(
             userDao.updatePasswordHash(user.id, upgraded)
         }
 
+        secureStorage.setLastUsername(username)
         return AuthResult.Success
     }
 
     suspend fun hasUsers(): Boolean {
         return userDao.getUserCount() > 0
+    }
+
+    fun getLastUsername(): String? {
+        return secureStorage.getLastUsername()
     }
 
     suspend fun userExists(username: String): Boolean {

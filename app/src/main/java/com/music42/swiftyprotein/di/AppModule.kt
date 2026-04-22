@@ -6,6 +6,7 @@ import com.music42.swiftyprotein.data.local.AppDatabase
 import com.music42.swiftyprotein.data.local.FavoritesDao
 import com.music42.swiftyprotein.data.local.UserDao
 import com.music42.swiftyprotein.data.remote.RcsbApi
+import com.music42.swiftyprotein.data.security.SecureStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,6 +43,12 @@ object AppModule {
     @Provides
     fun provideFavoritesDao(database: AppDatabase): FavoritesDao {
         return database.favoritesDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSecureStorage(@ApplicationContext context: Context): SecureStorage {
+        return SecureStorage(context)
     }
 
     @Provides

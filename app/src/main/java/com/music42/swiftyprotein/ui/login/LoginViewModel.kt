@@ -34,6 +34,10 @@ class LoginViewModel @Inject constructor(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     init {
+        val last = authRepository.getLastUsername()
+        if (!last.isNullOrBlank()) {
+            _uiState.update { it.copy(username = last) }
+        }
         checkBiometricAvailability()
     }
 

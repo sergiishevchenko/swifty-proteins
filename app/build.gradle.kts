@@ -95,4 +95,7 @@ dependencies {
 
     // Preferences
     implementation(libs.androidx.datastore.preferences)
+
+    // Jetpack Security (EncryptedSharedPreferences / Android Keystore)
+    implementation(libs.androidx.security.crypto)
 }
