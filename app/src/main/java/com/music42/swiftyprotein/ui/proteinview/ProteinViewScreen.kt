@@ -367,7 +367,14 @@ fun ProteinViewScreen(
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }
+
+                        androidx.compose.ui.window.Popup(alignment = Alignment.TopStart) {
+                            Column(
+                                modifier = Modifier.padding(start = 8.dp, top = 8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 Card(
                                     modifier = Modifier.size(42.dp),
                                     shape = CircleShape,
@@ -615,11 +622,12 @@ private fun MoleculeViewer(
     var labelFrameCounter by remember { mutableIntStateOf(0) }
     val sceneViewWindowXY = remember { intArrayOf(0, 0) }
     var sceneViewSizePx by remember { mutableStateOf(IntSize.Zero) }
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
     LaunchedEffect(showAtomLabels) {
         labelFrameCounter = 0
         if (!showAtomLabels && labelPositions.isNotEmpty()) {
-            labelPositions = emptyMap()
+            mainHandler.post { labelPositions = emptyMap() }
         }
     }
 
@@ -921,7 +929,7 @@ private fun MoleculeViewer(
 
                 if (showAtomLabels) {
                     labelFrameCounter++
-                    if (labelFrameCounter == 1 || labelFrameCounter % 20 == 0) {
+                    if (labelFrameCounter == 1 || labelFrameCounter % 2 == 0) {
                         val sv = sceneViewRef[0]
                         if (sv != null && sv.width > 0 && sv.height > 0) {
                             val entries = atomNodeMap.entries.asSequence()
@@ -938,11 +946,11 @@ private fun MoleculeViewer(
                                 val py = ((1f - v.y) * sv.height.toFloat()).coerceIn(0f, sv.height.toFloat())
                                 map[atom.id] = Offset(px, py)
                             }
-                            labelPositions = map
+                            mainHandler.post { labelPositions = map }
                         }
                     }
                 } else if (labelPositions.isNotEmpty()) {
-                    labelPositions = emptyMap()
+                    mainHandler.post { labelPositions = emptyMap() }
                 }
             }
         )
@@ -971,20 +979,16 @@ private fun MoleculeViewer(
             }
             val fm = paint.fontMetrics
             val textHalfH = -(fm.ascent + fm.descent) / 2f
-            val labelSnapshot = labelPositions
             if (popupW > 0 && popupH > 0) {
                 LabelOverlayPopup(
                     widthPx = popupW,
                     heightPx = popupH,
-                    density = density
-                ) { canvas ->
-                    for ((atomId, pos) in labelSnapshot) {
-                        val atom = atomById[atomId] ?: continue
-                        val text = atom.element
-                        val w = paint.measureText(text)
-                        canvas.drawText(text, pos.x - w / 2f, pos.y + textHalfH, paint)
-                    }
-                }
+                    density = density,
+                    positions = labelPositions,
+                    atomById = atomById,
+                    paint = paint,
+                    textHalfH = textHalfH
+                )
             }
         }
 
@@ -1332,9 +1336,21 @@ private fun LabelOverlayPopup(
     widthPx: Int,
     heightPx: Int,
     density: androidx.compose.ui.unit.Density,
-    drawLabels: (android.graphics.Canvas) -> Unit
+    positions: Map<String, Offset>,
+    atomById: Map<String, com.music42.swiftyprotein.data.model.Atom>,
+    paint: android.graphics.Paint,
+    textHalfH: Float
 ) {
-    val currentDraw = androidx.compose.runtime.rememberUpdatedState(drawLabels)
+    val overlayRef = remember { arrayOfNulls<android.view.View>(1) }
+    val posRef = remember { arrayOfNulls<Map<String, Offset>>(1) }
+    val atomRef = remember { arrayOfNulls<Map<String, com.music42.swiftyprotein.data.model.Atom>>(1) }
+    posRef[0] = positions
+    atomRef[0] = atomById
+
+    LaunchedEffect(positions) {
+        overlayRef[0]?.invalidate()
+    }
+
     androidx.compose.ui.window.Popup(
         alignment = Alignment.TopStart,
         properties = androidx.compose.ui.window.PopupProperties(
@@ -1355,13 +1371,17 @@ private fun LabelOverlayPopup(
                     override fun onTouchEvent(event: android.view.MotionEvent?) = false
                     override fun onDraw(c: android.graphics.Canvas) {
                         super.onDraw(c)
-                        currentDraw.value(c)
+                        val curPositions = posRef[0] ?: return
+                        val curAtoms = atomRef[0] ?: return
+                        for ((atomId, pos) in curPositions) {
+                            val atom = curAtoms[atomId] ?: continue
+                            val text = atom.element
+                            val w = paint.measureText(text)
+                            c.drawText(text, pos.x - w / 2f, pos.y + textHalfH, paint)
+                        }
                     }
                     override fun onAttachedToWindow() {
                         super.onAttachedToWindow()
-                        applyNotTouchable()
-                    }
-                    private fun applyNotTouchable() {
                         var r: android.view.ViewParent? = parent
                         while (r != null) {
                             if (r is android.view.View) {
@@ -1380,7 +1400,7 @@ private fun LabelOverlayPopup(
                             r = r.parent
                         }
                     }
-                }
+                }.also { overlayRef[0] = it }
             },
             update = { it.invalidate() },
             modifier = sizeModifier
