@@ -806,7 +806,7 @@ private fun MoleculeViewer(
                             val x1 = event.getX(1)
                             val y1 = event.getY(1)
 
-                            // Pinch zoom (explicit)
+                            
                             val span = hypot(x1 - x0, y1 - y0).coerceAtLeast(1f)
                             val ratio = (span / twoFingerSpan[0]).coerceIn(0.85f, 1.15f)
                             if (ratio != 1f) {
@@ -814,7 +814,7 @@ private fun MoleculeViewer(
                             }
                             twoFingerSpan[0] = span
 
-                            // Two-finger pan (explicit): move camera target in the XY plane.
+                            
                             val midX = (x0 + x1) / 2f
                             val midY = (y0 + y1) / 2f
                             val dx = midX - twoFinger[1]

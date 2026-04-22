@@ -59,7 +59,7 @@ class LigandRepository @Inject constructor(
                     onProgress?.invoke("Preparing scene", 0.90f)
                     return@withContext Result.success(ligand)
                 }
-                // If cache is corrupted, fall through to refetch.
+                
             }
 
             onProgress?.invoke("Downloading CIF", 0.20f)
@@ -95,7 +95,7 @@ class LigandRepository @Inject constructor(
         } catch (e: SocketTimeoutException) {
             Result.failure(Exception("Request timeout. Please try again."))
         } catch (e: Exception) {
-            // Keep message user-friendly by default.
+            
             val msg = e.localizedMessage?.takeIf { it.isNotBlank() } ?: "Unknown error"
             Result.failure(Exception(msg))
         }

@@ -82,7 +82,7 @@ class ProteinListViewModel @Inject constructor(
             )
         }
 
-        // Strict per subject: validate that the ligand can be fetched + parsed before navigation.
+        
         viewModelScope.launch {
             val result = ligandRepository.fetchLigand(ligandId)
             result.fold(
