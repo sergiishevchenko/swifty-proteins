@@ -871,7 +871,7 @@ private fun MoleculeViewer(
                                 val now = event.eventTime
                                 val prev = lastTap[0]
                                 val prevId = lastTapAtomId[0]
-                                if (prevId == closestAtom.id && now - prev < 320L) {
+                                if (prevId == closestAtom.id && now - prev < 550L) {
                                     val atomsForCenter = ligand.atoms.filterNot {
                                         val e = it.element.uppercase().trim()
                                         e == "H" || e == "D"
@@ -974,12 +974,14 @@ private fun MoleculeViewer(
                         focusOffset.z + (target.z - focusOffset.z) * k
                     )
                     focusOffset = next
+                    parentNode.position = io.github.sceneview.math.Position(-next.x, -next.y, -next.z)
                     val done =
                         kotlin.math.abs(target.x - next.x) < 0.01f &&
                             kotlin.math.abs(target.y - next.y) < 0.01f &&
                             kotlin.math.abs(target.z - next.z) < 0.01f
                     if (done) {
                         focusOffset = target
+                        parentNode.position = io.github.sceneview.math.Position(-target.x, -target.y, -target.z)
                         focusTarget = null
                     }
                 }
