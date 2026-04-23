@@ -24,6 +24,20 @@ Provide a simple local account system with:
 - Users are stored locally in **Room (SQLite)**.
 - Passwords are stored as a **secure hash** (bcrypt).
 
+## Can I view passwords in the database?
+
+No. The app does **not** store plaintext passwords. Only `passwordHash` is stored.
+
+If you want to inspect what is stored:
+
+- Android Studio: `App Inspection → Database Inspector` → open `swifty_protein_db` → table `users` → column `passwordHash`
+- ADB (copy DB out of app sandbox):
+
+```bash
+adb shell run-as com.music42.swiftyprotein ls -l databases
+adb exec-out run-as com.music42.swiftyprotein cat databases/swifty_protein_db > swifty_protein_db
+```
+
 ## Biometric flow (high level)
 
 1. UI checks biometric availability via `LoginViewModel`.
