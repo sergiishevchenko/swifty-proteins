@@ -43,6 +43,13 @@ class MainActivity : FragmentActivity() {
         wasInBackground = true
     }
 
+    override fun onStop() {
+        super.onStop()
+        if (!isChangingConfigurations) {
+            wasInBackground = true
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         if (wasInBackground) {
