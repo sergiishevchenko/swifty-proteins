@@ -33,8 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -145,6 +147,7 @@ private fun ComparePanel(
     modifier: Modifier = Modifier
 ) {
     var zoomFactor by remember(ligand.id) { mutableFloatStateOf(1f) }
+    var resetTick by remember(ligand.id) { mutableIntStateOf(0) }
     val background: Color = MaterialTheme.colorScheme.background
 
     Card(
@@ -170,6 +173,7 @@ private fun ComparePanel(
                     ligand = ligand,
                     zoomFactor = zoomFactor,
                     onZoomFactorChange = { zoomFactor = it },
+                    resetTick = resetTick,
                     modifier = Modifier.fillMaxSize()
                 )
 
@@ -227,7 +231,10 @@ private fun ComparePanel(
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             IconButton(
-                                onClick = { zoomFactor = 1f },
+                                onClick = {
+                                    zoomFactor = 1f
+                                    resetTick++
+                                },
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 Icon(
@@ -249,6 +256,7 @@ private fun SimpleMoleculeViewer(
     ligand: Ligand,
     zoomFactor: Float,
     onZoomFactorChange: (Float) -> Unit,
+    resetTick: Int,
     modifier: Modifier = Modifier
 ) {
     val engine = rememberEngine()
@@ -258,7 +266,14 @@ private fun SimpleMoleculeViewer(
     } else {
         Color(0xFFF3F5F7)
     }
-    val centerOffset = remember(ligand.id) { dev.romainguy.kotlin.math.Float3(0f, 0f, 0f) }
+    val atoms = ligand.atoms.filterNot {
+        val e = it.element.uppercase().trim()
+        e == "H" || e == "D"
+    }.ifEmpty { ligand.atoms }
+    val cx = atoms.map { it.x }.average().toFloat()
+    val cy = atoms.map { it.y }.average().toFloat()
+    val cz = atoms.map { it.z }.average().toFloat()
+    val centerOffset = remember(ligand.id) { dev.romainguy.kotlin.math.Float3(cx, cy, cz) }
     val (parentNode, _) = remember(ligand.id) {
         MoleculeSceneBuilder.build(
             engine = engine,
@@ -275,13 +290,6 @@ private fun SimpleMoleculeViewer(
         far = 1000.0f
     }
 
-    val atoms = ligand.atoms.filterNot {
-        val e = it.element.uppercase().trim()
-        e == "H" || e == "D"
-    }.ifEmpty { ligand.atoms }
-    val cx = atoms.map { it.x }.average().toFloat()
-    val cy = atoms.map { it.y }.average().toFloat()
-    val cz = atoms.map { it.z }.average().toFloat()
     val boundingRadius = (atoms.maxOfOrNull { a ->
         val dx = a.x - cx; val dy = a.y - cy; val dz = a.z - cz
         kotlin.math.sqrt(dx * dx + dy * dy + dz * dz) + MoleculeSceneBuilder.BALL_RADIUS
@@ -290,16 +298,19 @@ private fun SimpleMoleculeViewer(
     val dist = (baseDist / zoomFactor).coerceIn(baseDist * 0.2f, baseDist * 6f)
     val dirX = 0.43f; val dirY = 0.32f; val dirZ = 0.75f
     val dirLen = kotlin.math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-    val cameraPos = io.github.sceneview.math.Position(
+    val defaultCameraPos = io.github.sceneview.math.Position(
         dirX / dirLen * dist,
         dirY / dirLen * dist,
         dirZ / dirLen * dist
     )
-    cameraNode.position = cameraPos
+    LaunchedEffect(ligand.id, resetTick) {
+        cameraNode.position = defaultCameraPos
+        runCatching { cameraNode.lookAt(io.github.sceneview.math.Position(0f, 0f, 0f)) }
+    }
 
-    val cameraManipulator = remember(ligand.id, zoomFactor) {
+    val cameraManipulator = remember(ligand.id, resetTick) {
         SceneView.createDefaultCameraManipulator(
-            orbitHomePosition = cameraPos,
+            orbitHomePosition = defaultCameraPos,
             targetPosition = io.github.sceneview.math.Position(0f, 0f, 0f)
         )
     }
@@ -317,6 +328,10 @@ private fun SimpleMoleculeViewer(
         childNodes = listOf(parentNode),
         onFrame = {
             runCatching {
+                val p = cameraNode.position
+                val len = kotlin.math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z).coerceAtLeast(0.0001f)
+                val k = dist / len
+                cameraNode.position = io.github.sceneview.math.Position(p.x * k, p.y * k, p.z * k)
                 cameraNode.lookAt(io.github.sceneview.math.Position(0f, 0f, 0f))
             }
         },
