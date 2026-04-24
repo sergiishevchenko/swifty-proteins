@@ -1145,9 +1145,9 @@ private fun MeasurementOverlay(
     modifier: Modifier = Modifier
 ) {
     val atoms = selectedAtomIds.mapNotNull { id -> ligand.atoms.firstOrNull { it.id == id } }
-    val text = when (atoms.size) {
-        0 -> "Measure mode: tap atoms (2 = distance, 3 = angle)"
-        1 -> "Measure: selected ${atoms[0].id}"
+    val details = when (atoms.size) {
+        0 -> "Tap atoms (2 = distance, 3 = angle)"
+        1 -> "Selected ${atoms[0].id}"
         2 -> {
             val a = atoms[0]
             val b = atoms[1]
@@ -1173,6 +1173,8 @@ private fun MeasurementOverlay(
             "Angle (${a.id}–${b.id}–${c.id}): ${String.format("%.1f°", angle)}"
         }
     }
+    val headerText = "Measure mode:"
+    val detailText = details
 
     Card(
         modifier = modifier,
@@ -1192,12 +1194,19 @@ private fun MeasurementOverlay(
                 contentDescription = null,
                 modifier = Modifier.size(28.dp)
             )
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.inverseOnSurface,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = headerText,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFFFF9800)
+                )
+                Text(
+                    text = detailText,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.inverseOnSurface
+                )
+            }
             Text(
                 text = "Reset",
                 style = MaterialTheme.typography.labelLarge,
