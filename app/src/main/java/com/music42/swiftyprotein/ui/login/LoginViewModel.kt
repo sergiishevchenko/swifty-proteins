@@ -21,7 +21,8 @@ data class LoginUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isAuthenticated: Boolean = false,
-    val biometricAvailable: Boolean = false
+    val biometricAvailable: Boolean = false,
+    val lastUsername: String? = null
 )
 
 @HiltViewModel
@@ -36,7 +37,7 @@ class LoginViewModel @Inject constructor(
     init {
         val last = authRepository.getLastUsername()
         if (!last.isNullOrBlank()) {
-            _uiState.update { it.copy(username = last) }
+            _uiState.update { it.copy(username = last, lastUsername = last) }
         }
         checkBiometricAvailability()
     }
@@ -48,13 +49,22 @@ class LoginViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            val hasUsers = authRepository.hasUsers()
-            _uiState.update { it.copy(biometricAvailable = hasUsers) }
+            val last = authRepository.getLastUsername()?.trim().orEmpty()
+            if (last.isBlank()) {
+                _uiState.update { it.copy(biometricAvailable = false, lastUsername = null) }
+                return@launch
+            }
+            val exists = authRepository.userExists(last)
+            val typed = _uiState.value.username.trim()
+            val enabledForTyped = exists && typed.isNotBlank() && typed == last
+            _uiState.update { it.copy(biometricAvailable = enabledForTyped, lastUsername = last.takeIf { exists }) }
         }
     }
 
     fun onUsernameChange(value: String) {
-        _uiState.update { it.copy(username = value, errorMessage = null) }
+        val next = value
+        _uiState.update { it.copy(username = next, errorMessage = null) }
+        checkBiometricAvailability()
     }
 
     fun onPasswordChange(value: String) {
@@ -98,21 +108,35 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onBiometricSuccess() {
-        val username = _uiState.value.username.trim()
-        if (username.isBlank()) {
+        val last = authRepository.getLastUsername()?.trim().orEmpty()
+        if (last.isBlank()) {
+            _uiState.update { it.copy(errorMessage = "Log in once with password first.") }
+            checkBiometricAvailability()
+            return
+        }
+        val typed = _uiState.value.username.trim()
+        if (typed.isNotBlank() && typed != last) {
             _uiState.update {
-                it.copy(errorMessage = "Enter username before fingerprint login.")
+                it.copy(errorMessage = "Biometric login is available only for the last signed-in user. Use password to switch user.")
             }
+            checkBiometricAvailability()
             return
         }
         viewModelScope.launch {
-            val exists = authRepository.userExists(username)
+            val exists = authRepository.userExists(last)
             if (exists) {
-                _uiState.update { it.copy(isAuthenticated = true, errorMessage = null) }
+                _uiState.update {
+                    it.copy(
+                        username = last,
+                        isAuthenticated = true,
+                        errorMessage = null
+                    )
+                }
             } else {
                 _uiState.update {
-                    it.copy(errorMessage = "User not found. Register or enter a valid username.")
+                    it.copy(errorMessage = "Biometric login is unavailable. Log in with password.")
                 }
+                checkBiometricAvailability()
             }
         }
     }

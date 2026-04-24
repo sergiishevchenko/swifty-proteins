@@ -37,6 +37,8 @@ class AuthRepository @Inject constructor(
                     passwordHash = hashPassword(password)
                 )
             )
+            secureStorage.setLastUsername(username)
+            secureStorage.setBiometricUsername(username)
             AuthResult.Success
         } catch (e: SQLiteConstraintException) {
             AuthResult.Error("Username already exists.")
@@ -67,6 +69,7 @@ class AuthRepository @Inject constructor(
         }
 
         secureStorage.setLastUsername(username)
+        secureStorage.setBiometricUsername(username)
         return AuthResult.Success
     }
 
@@ -76,6 +79,10 @@ class AuthRepository @Inject constructor(
 
     fun getLastUsername(): String? {
         return secureStorage.getLastUsername()
+    }
+
+    fun getBiometricUsername(): String? {
+        return secureStorage.getBiometricUsername()
     }
 
     suspend fun userExists(username: String): Boolean {

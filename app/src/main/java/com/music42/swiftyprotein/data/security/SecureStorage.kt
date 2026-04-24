@@ -28,7 +28,16 @@ class SecureStorage(
         return prefs.getString(KEY_LAST_USERNAME, null)
     }
 
+    fun setBiometricUsername(username: String) {
+        prefs.edit().putString(KEY_BIOMETRIC_USERNAME, username).apply()
+    }
+
+    fun getBiometricUsername(): String? {
+        return prefs.getString(KEY_BIOMETRIC_USERNAME, null)
+    }
+
     companion object {
         private const val KEY_LAST_USERNAME = "last_username"
+        private const val KEY_BIOMETRIC_USERNAME = "biometric_username"
     }
 }
