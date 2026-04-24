@@ -36,9 +36,8 @@ class SecureStorage(
         return prefs.getString(KEY_BIOMETRIC_USERNAME, null)
     }
 
-    fun clearAuth() {
+    fun clearAuthForLogout() {
         prefs.edit()
-            .remove(KEY_LAST_USERNAME)
             .remove(KEY_BIOMETRIC_USERNAME)
             .apply()
     }

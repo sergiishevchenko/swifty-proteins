@@ -86,7 +86,7 @@ class AuthRepository @Inject constructor(
     }
 
     fun logout() {
-        secureStorage.clearAuth()
+        secureStorage.clearAuthForLogout()
     }
 
     suspend fun userExists(username: String): Boolean {
