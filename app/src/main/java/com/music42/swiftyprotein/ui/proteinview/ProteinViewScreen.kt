@@ -1065,10 +1065,10 @@ private fun MoleculeViewer(
     }
     cameraNode.position = cameraPosition
 
-    val cameraManipulator = remember(ligand.id, zoomFactor, resetTick) {
+    val cameraManipulator = remember(ligand.id, resetTick) {
         SceneView.createDefaultCameraManipulator(
             orbitHomePosition = cameraPosition,
-            targetPosition = io.github.sceneview.math.Position(panTarget[0], panTarget[1], 0f)
+            targetPosition = io.github.sceneview.math.Position(0f, 0f, 0f)
         )
     }
 
@@ -1097,8 +1097,10 @@ private fun MoleculeViewer(
                             twoFinger[1] = (x0 + x1) / 2f
                             twoFinger[2] = (y0 + y1) / 2f
                             twoFingerSpan[0] = hypot(x1 - x0, y1 - y0).coerceAtLeast(1f)
+                            true
+                        } else {
+                            false
                         }
-                        false
                     }
                     MotionEvent.ACTION_SCROLL -> {
                         val wheel = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
@@ -1289,6 +1291,15 @@ private fun MoleculeViewer(
                     val x = kotlin.math.sin(autoRotateAngle) * r
                     val z = kotlin.math.cos(autoRotateAngle) * r
                     cameraNode.position = io.github.sceneview.math.Position(x, 0f, z)
+                } else {
+                    val len = kotlin.math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z)
+                        .coerceAtLeast(0.0001f)
+                    if (kotlin.math.abs(len - distance) > 0.01f) {
+                        val k = distance / len
+                        cameraNode.position = io.github.sceneview.math.Position(
+                            p.x * k, p.y * k, p.z * k
+                        )
+                    }
                 }
 
                 runCatching {
