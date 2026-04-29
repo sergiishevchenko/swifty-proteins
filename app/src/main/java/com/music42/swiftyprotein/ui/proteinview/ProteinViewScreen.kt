@@ -1159,7 +1159,7 @@ private fun MoleculeViewer(
                             )
                             val up = dev.romainguy.kotlin.math.cross(right, forward)
 
-                            val sensitivity = distance * 0.0015f
+                            val sensitivity = distance * 0.0006f
                             val panDx = dx * sensitivity
                             val panDy = dy * sensitivity
                             panOffset = Float3(
