@@ -895,6 +895,7 @@ private fun MoleculeViewer(
     val lastTapAtomId = remember { arrayOfNulls<String>(1) }
     var focusTarget by remember(ligand.id) { mutableStateOf<Float3?>(null) }
     var focusOffset by remember(ligand.id) { mutableStateOf(Float3(0f, 0f, 0f)) }
+    var panOffset by remember(ligand.id) { mutableStateOf(Float3(0f, 0f, 0f)) }
     var labelPositions by remember { mutableStateOf<Map<String, Offset>>(emptyMap()) }
     var labelFrameCounter by remember { mutableIntStateOf(0) }
     val sceneViewWindowXY = remember { intArrayOf(0, 0) }
@@ -1038,6 +1039,7 @@ private fun MoleculeViewer(
         panTarget[0] = 0f
         panTarget[1] = 0f
         focusOffset = Float3(0f, 0f, 0f)
+        panOffset = Float3(0f, 0f, 0f)
         focusTarget = null
         parentNode.position = io.github.sceneview.math.Position(0f, 0f, 0f)
     }
@@ -1147,8 +1149,11 @@ private fun MoleculeViewer(
 
                             val worldPerScreenX = distance / sv.width.toFloat()
                             val worldPerScreenY = distance / sv.height.toFloat()
-                            panTarget[0] += -dx * worldPerScreenX
-                            panTarget[1] += dy * worldPerScreenY
+                            panOffset = Float3(
+                                panOffset.x + dx * worldPerScreenX,
+                                panOffset.y - dy * worldPerScreenY,
+                                panOffset.z
+                            )
                             true
                         } else {
                             false
@@ -1288,17 +1293,21 @@ private fun MoleculeViewer(
                         focusOffset.z + (target.z - focusOffset.z) * k
                     )
                     focusOffset = next
-                    parentNode.position = io.github.sceneview.math.Position(-next.x, -next.y, -next.z)
                     val done =
                         kotlin.math.abs(target.x - next.x) < 0.01f &&
                             kotlin.math.abs(target.y - next.y) < 0.01f &&
                             kotlin.math.abs(target.z - next.z) < 0.01f
                     if (done) {
                         focusOffset = target
-                        parentNode.position = io.github.sceneview.math.Position(-target.x, -target.y, -target.z)
                         focusTarget = null
                     }
                 }
+
+                parentNode.position = io.github.sceneview.math.Position(
+                    -focusOffset.x + panOffset.x,
+                    -focusOffset.y + panOffset.y,
+                    -focusOffset.z + panOffset.z
+                )
 
                 if (showAtomLabels) {
                     labelFrameCounter++
