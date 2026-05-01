@@ -2,6 +2,18 @@
 
 This project is an Android (Kotlin) implementation of the **Swifty Proteins** assignment. It uses a Compose + MVVM + Repository architecture and renders molecules in 3D via **SceneView (Filament)**.
 
+## Documents
+
+- [Authentication](AUTH.md)
+- [Navigation](NAVIGATION.md)
+- [Data layer](DATA_LAYER.md)
+- [CIF parser](CIF_PARSER.md)
+- [3D rendering](RENDERING_3D.md)
+- [Overlays & interaction](OVERLAYS_INTERACTION.md)
+- [Sharing & video](SHARING_AND_VIDEO.md)
+- [Favorites & compare](FAVORITES_AND_COMPARE.md)
+- [Settings & theme](SETTINGS_AND_THEME.md)
+
 ## High-level modules
 
 - **UI / Navigation**: Compose screens + navigation graph.
@@ -28,15 +40,3 @@ This project is an Android (Kotlin) implementation of the **Swifty Proteins** as
    - (Balls mode) labels + measurement
    - share screenshot/video
 6. Optional: add to favorites, open favorites list, compare two ligands.
-
-## Documents
-
-- `docs/AUTH.md`
-- `docs/NAVIGATION.md`
-- `docs/DATA_LAYER.md`
-- `docs/CIF_PARSER.md`
-- `docs/RENDERING_3D.md`
-- `docs/OVERLAYS_INTERACTION.md`
-- `docs/SHARING_AND_VIDEO.md`
-- `docs/FAVORITES_AND_COMPARE.md`
-- `docs/SETTINGS_AND_THEME.md`
