@@ -20,7 +20,8 @@ data class ProteinListUiState(
     val loadingLigandId: String? = null,
     val errorMessage: String? = null,
     val navigateToLigand: String? = null,
-    val favoriteIds: Set<String> = emptySet()
+    val favoriteIds: Set<String> = emptySet(),
+    val cachedInfo: Map<String, LigandRepository.LigandCacheInfo> = emptyMap()
 )
 
 @HiltViewModel
@@ -35,6 +36,7 @@ class ProteinListViewModel @Inject constructor(
     init {
         loadLigands()
         observeFavorites()
+        loadCachedInfo()
     }
 
     private fun loadLigands() {
@@ -48,6 +50,17 @@ class ProteinListViewModel @Inject constructor(
                     isLoading = false
                 )
             }
+        }
+    }
+
+    private fun loadCachedInfo() {
+        viewModelScope.launch {
+            val ids = ligandRepository.getLigandIds()
+            val info = mutableMapOf<String, LigandRepository.LigandCacheInfo>()
+            for (id in ids) {
+                ligandRepository.getCachedInfo(id)?.let { info[id] = it }
+            }
+            _uiState.update { it.copy(cachedInfo = info) }
         }
     }
 
