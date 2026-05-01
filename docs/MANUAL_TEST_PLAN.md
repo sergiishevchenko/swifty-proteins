@@ -81,12 +81,12 @@ This is a security requirement: when the app returns from background, Login shou
   - While in ligand list or 3D view, press Home and return to the app.
   - Expected: app shows Login.
 
-- **Exception: system dialogs must NOT force login**
-  - Open a system flow and cancel it:
+- **System dialogs**
+  - Open a system flow and return back:
     - Share sheet (screenshot share)
     - Share sheet (video share)
     - MediaProjection permission dialog (video recording) and cancel
-  - Expected: returning from the dialog does **not** redirect to Login.
+  - Expected: app may be treated as having returned from background and can redirect to Login (strict security mode).
 
 ---
 
@@ -274,6 +274,11 @@ Best verified on a real device (emulators can be flaky).
   - Change default mode in Settings.
   - Reopen a ligand.
   - Expected: the chosen default mode is applied.
+
+- **Show hydrogens by default**
+  - Settings → toggle “Show hydrogens by default”.
+  - Open a ligand.
+  - Expected: hydrogen atoms visibility follows the setting on first open (you can still toggle it in the 3D view).
 
 ---
 
