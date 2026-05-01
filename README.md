@@ -278,7 +278,7 @@ Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth a
 
 <p align="center"><strong><a href="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.mp4">▶ Play screen recording (MP4)</a></strong></p>
 
-<p align="center"><em>Flow: catalog → ligand 001 → 3D. Repo-relative copy: <a href="screenshots/ligand_001.mp4"><code>screenshots/ligand_001.mp4</code></a>. For a true inline player inside README, upload the MP4 in GitHub’s web editor (drag-and-drop into the README); GitHub will insert a <code>user-images.githubusercontent.com</code> URL that renders as a player.</em></p>
+<p align="center"><em>Flow: catalog → ligand 001 → 3D. Repo-relative copy: <a href="screenshots/ligand_001.mp4"><code>screenshots/ligand_001.mp4</code></a>.</em></p>
 
 ## Compliance Snapshot
 
