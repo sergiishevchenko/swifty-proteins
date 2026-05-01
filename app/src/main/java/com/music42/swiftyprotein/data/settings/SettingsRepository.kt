@@ -23,6 +23,7 @@ class SettingsRepository @Inject constructor(
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val DEFAULT_VIS_MODE = stringPreferencesKey("default_visualization_mode")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        val SHOW_HYDROGENS = booleanPreferencesKey("show_hydrogens_by_default")
     }
 
     val settings: Flow<AppSettings> =
@@ -30,7 +31,8 @@ class SettingsRepository @Inject constructor(
             AppSettings(
                 themeMode = prefs.readEnum(Keys.THEME_MODE, ThemeMode.SYSTEM),
                 defaultVisualizationMode = prefs.readEnum(Keys.DEFAULT_VIS_MODE, VisualizationMode.BALL_AND_STICK),
-                onboardingCompleted = prefs[Keys.ONBOARDING_COMPLETED] ?: false
+                onboardingCompleted = prefs[Keys.ONBOARDING_COMPLETED] ?: false,
+                showHydrogensByDefault = prefs[Keys.SHOW_HYDROGENS] ?: false
             )
         }
 
@@ -44,6 +46,10 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setOnboardingCompleted(completed: Boolean) {
         context.dataStore.edit { it[Keys.ONBOARDING_COMPLETED] = completed }
+    }
+
+    suspend fun setShowHydrogensByDefault(show: Boolean) {
+        context.dataStore.edit { it[Keys.SHOW_HYDROGENS] = show }
     }
 
     private inline fun <reified T : Enum<T>> Preferences.readEnum(
