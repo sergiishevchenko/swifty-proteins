@@ -166,7 +166,7 @@ app/src/main/java/com/music42/swiftyprotein/
 
 ## Screenshots & demo
 
-Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. Every screenshot and the inline video use the same display width (`300px`, capped with `max-width: 100%` on small screens).
+Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). **Note:** GitHub does not render an inline `<video>` player in README files for repo-local MP4 paths, so the demo below is a **clickable preview** that opens [`ligand_001.mp4`](screenshots/ligand_001.mp4).
 
 ### Launch, sign-in, and onboarding
 
@@ -273,10 +273,10 @@ Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth a
 ### Screen recording
 
 <p align="center">
-  <video src="screenshots/ligand_001.mp4" width="300" style="max-width: 100%; height: auto;" controls playsinline></video>
+  <a href="screenshots/ligand_001.mp4" title="Open demo MP4"><img src="screenshots/ligand_001.png" alt="Demo video — click to open ligand_001.mp4" width="300" style="max-width: 100%; height: auto;"/></a>
 </p>
 
-<p align="center"><em>Recorded flow: catalog → open ligand 001 → interact with the 3D scene. If the inline player does not render, open the file directly: [ligand_001.mp4](screenshots/ligand_001.mp4).</em></p>
+<p align="center"><em>Click the preview to open <a href="screenshots/ligand_001.mp4"><code>ligand_001.mp4</code></a> (catalog → ligand 001 → 3D). After clone, play the file locally from <code>screenshots/ligand_001.mp4</code>.</em></p>
 
 ## Compliance Snapshot
 
