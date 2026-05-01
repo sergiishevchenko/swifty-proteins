@@ -52,7 +52,7 @@ import com.music42.swiftyprotein.util.BiometricHelper
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (showOnboarding: Boolean) -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -61,7 +61,8 @@ fun LoginScreen(
 
     LaunchedEffect(uiState.isAuthenticated) {
         if (uiState.isAuthenticated) {
-            onLoginSuccess()
+            val showOnboarding = viewModel.consumeShowOnboardingAfterRegister()
+            onLoginSuccess(showOnboarding)
             viewModel.resetAuthState()
         }
     }

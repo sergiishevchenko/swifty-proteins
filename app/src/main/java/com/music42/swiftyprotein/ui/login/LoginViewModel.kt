@@ -34,6 +34,8 @@ class LoginViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
+    private var showOnboardingAfterRegister = false
+
     init {
         val last = authRepository.getLastUsername()
         if (!last.isNullOrBlank()) {
@@ -96,6 +98,7 @@ class LoginViewModel @Inject constructor(
 
             when (result) {
                 is AuthResult.Success -> {
+                    showOnboardingAfterRegister = state.isRegistering
                     _uiState.update { it.copy(isLoading = false, isAuthenticated = true) }
                     if (state.isRegistering) {
                         checkBiometricAvailability()
@@ -106,6 +109,12 @@ class LoginViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun consumeShowOnboardingAfterRegister(): Boolean {
+        val v = showOnboardingAfterRegister
+        showOnboardingAfterRegister = false
+        return v
     }
 
     fun onBiometricSuccess() {
@@ -126,6 +135,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             val exists = authRepository.userExists(last)
             if (exists) {
+                showOnboardingAfterRegister = false
                 _uiState.update {
                     it.copy(
                         username = last,

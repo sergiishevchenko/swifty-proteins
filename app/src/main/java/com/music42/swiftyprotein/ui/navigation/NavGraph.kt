@@ -47,12 +47,12 @@ fun SwiftyProteinNavHost(
             val settingsViewModel: SettingsViewModel = hiltViewModel()
             val settings by settingsViewModel.settings.collectAsState()
             LoginScreen(
-                onLoginSuccess = {
+                onLoginSuccess = { forceOnboarding ->
                     sessionViewModel.refresh()
-                    val next = if (settings.onboardingCompleted) {
-                        Screen.ProteinList.route
-                    } else {
+                    val next = if (forceOnboarding || !settings.onboardingCompleted) {
                         Screen.Onboarding.route
+                    } else {
+                        Screen.ProteinList.route
                     }
                     navController.navigate(next) {
                         popUpTo(Screen.Login.route) { inclusive = true }

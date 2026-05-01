@@ -5,6 +5,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt
 import com.music42.swiftyprotein.data.local.UserDao
 import com.music42.swiftyprotein.data.local.entity.User
 import com.music42.swiftyprotein.data.security.SecureStorage
+import com.music42.swiftyprotein.data.settings.SettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,7 +17,8 @@ sealed class AuthResult {
 @Singleton
 class AuthRepository @Inject constructor(
     private val userDao: UserDao,
-    private val secureStorage: SecureStorage
+    private val secureStorage: SecureStorage,
+    private val settingsRepository: SettingsRepository
 ) {
 
     suspend fun register(username: String, password: String): AuthResult {
@@ -39,6 +41,7 @@ class AuthRepository @Inject constructor(
             )
             secureStorage.setLastUsername(username)
             secureStorage.setBiometricUsername(username)
+            settingsRepository.setOnboardingCompleted(false)
             AuthResult.Success
         } catch (e: SQLiteConstraintException) {
             AuthResult.Error("Username already exists.")
