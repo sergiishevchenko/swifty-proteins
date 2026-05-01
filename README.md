@@ -166,7 +166,7 @@ app/src/main/java/com/music42/swiftyprotein/
 
 ## Screenshots & demo
 
-Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). The demo video below is embedded with an **absolute** `raw.githubusercontent.com` URL so GitHub’s README renderer can show a player (relative `screenshots/…mp4` paths are ignored for `<video>`).
+Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). **Screen recording:** GitHub’s README sanitizer removes HTML `<video>` tags, so there is no in-page player here—use the preview link below (opens the MP4 in the browser or downloads it, depending on your client).
 
 ### Launch, sign-in, and onboarding
 
@@ -273,23 +273,12 @@ Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth a
 ### Screen recording
 
 <p align="center">
-  <video
-    width="300"
-    style="max-width: 100%; height: auto;"
-    controls
-    playsinline
-    preload="metadata"
-    poster="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.png"
-  >
-    <source
-      src="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.mp4"
-      type="video/mp4"
-    />
-    <a href="screenshots/ligand_001.mp4">Download <code>ligand_001.mp4</code></a>
-  </video>
+  <a href="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.mp4" title="Open MP4 (browser usually plays it)"><img src="screenshots/ligand_001.png" alt="Screen recording: tap to open ligand_001.mp4" width="300" style="max-width: 100%; height: auto;"/></a>
 </p>
 
-<p align="center"><em>Catalog → ligand 001 → 3D. Local copy: <a href="screenshots/ligand_001.mp4"><code>screenshots/ligand_001.mp4</code></a>.</em></p>
+<p align="center"><strong><a href="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.mp4">▶ Play screen recording (MP4)</a></strong></p>
+
+<p align="center"><em>Flow: catalog → ligand 001 → 3D. Repo-relative copy: <a href="screenshots/ligand_001.mp4"><code>screenshots/ligand_001.mp4</code></a>. For a true inline player inside README, upload the MP4 in GitHub’s web editor (drag-and-drop into the README); GitHub will insert a <code>user-images.githubusercontent.com</code> URL that renders as a player.</em></p>
 
 ## Compliance Snapshot
 
