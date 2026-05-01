@@ -202,7 +202,7 @@ fun LoginScreen(
             icon = {
                 Icon(
                     imageVector = Icons.Default.WarningAmber,
-                    contentDescription = null,
+                    contentDescription = "Authentication error",
                     tint = MaterialTheme.colorScheme.error
                 )
             },
