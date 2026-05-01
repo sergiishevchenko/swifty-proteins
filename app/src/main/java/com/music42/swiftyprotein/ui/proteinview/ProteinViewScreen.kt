@@ -198,6 +198,7 @@ fun ProteinViewScreen(
             return@rememberLauncherForActivityResult
         }
         val activity = context as? Activity ?: return@rememberLauncherForActivityResult
+        (activity as? com.music42.swiftyprotein.MainActivity)?.suppressLoginFor()
         val mgr = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         projectionLauncher.launch(mgr.createScreenCaptureIntent())
     }
@@ -376,6 +377,7 @@ fun ProteinViewScreen(
                                         onClick = {
                                             if (isRecording) return@IconButton
                                             val activity = context as? Activity ?: return@IconButton
+                                            (activity as? com.music42.swiftyprotein.MainActivity)?.suppressLoginFor()
                                             
                                             if (android.os.Build.VERSION.SDK_INT >= 33) {
                                                 val ok = ContextCompat.checkSelfPermission(
@@ -803,6 +805,7 @@ private fun shareImageFile(
             )
         }
     }
+    (context as? MainActivity)?.suppressLoginFor()
     context.startActivity(Intent.createChooser(intent, chooserTitle))
 }
 
@@ -1582,6 +1585,7 @@ private fun shareVideo(
             )
         }
     }
+    (context as? MainActivity)?.suppressLoginFor()
     context.startActivity(Intent.createChooser(intent, "Share Video"))
 }
 

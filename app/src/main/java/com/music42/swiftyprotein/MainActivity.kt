@@ -1,6 +1,7 @@
 package com.music42.swiftyprotein
 
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
@@ -18,6 +19,12 @@ class MainActivity : FragmentActivity() {
         private set
 
     private var wasInBackground = false
+    private var suppressLoginUntilMs: Long = 0L
+
+    fun suppressLoginFor(durationMs: Long = 10_000L) {
+        val now = SystemClock.elapsedRealtime()
+        suppressLoginUntilMs = maxOf(suppressLoginUntilMs, now + durationMs)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -53,7 +60,10 @@ class MainActivity : FragmentActivity() {
         super.onResume()
         if (wasInBackground) {
             wasInBackground = false
-            shouldShowLogin = true
+            val now = SystemClock.elapsedRealtime()
+            if (now >= suppressLoginUntilMs) {
+                shouldShowLogin = true
+            }
         }
     }
 }
