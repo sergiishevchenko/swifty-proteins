@@ -61,7 +61,12 @@ class ProteinViewViewModel @Inject constructor(
         _uiState.update { it.copy(ligandId = ligandId) }
         viewModelScope.launch {
             val settings = settingsRepository.settings.first()
-            _uiState.update { it.copy(visualizationMode = settings.defaultVisualizationMode) }
+            _uiState.update {
+                it.copy(
+                    visualizationMode = settings.defaultVisualizationMode,
+                    showHydrogens = settings.showHydrogensByDefault
+                )
+            }
         }
         fetchLigand(ligandId)
     }

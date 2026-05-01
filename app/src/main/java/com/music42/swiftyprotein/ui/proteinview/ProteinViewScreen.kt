@@ -183,7 +183,7 @@ fun ProteinViewScreen(
             recorderHolder[0] = null
             runCatching { activity.stopService(Intent(activity, MediaProjectionForegroundService::class.java)) }
             if (stoppedFile != null && stoppedFile.exists() && stoppedFile.length() > 0L) {
-                shareVideo(context, stoppedFile, safeLigandId)
+                shareVideo(context, stoppedFile, safeLigandId, uiState.ligand)
             } else {
                 recordErrorMessage = "Video recording failed (empty output). Try a real device."
             }
@@ -376,9 +376,7 @@ fun ProteinViewScreen(
                                         onClick = {
                                             if (isRecording) return@IconButton
                                             val activity = context as? Activity ?: return@IconButton
-                                            (activity as? com.music42.swiftyprotein.MainActivity)?.let {
-                                                it.suppressLoginOnResume = true
-                                            }
+                                            
                                             if (android.os.Build.VERSION.SDK_INT >= 33) {
                                                 val ok = ContextCompat.checkSelfPermission(
                                                     activity,
@@ -805,7 +803,6 @@ private fun shareImageFile(
             )
         }
     }
-    (context as? MainActivity)?.suppressLoginOnResume = true
     context.startActivity(Intent.createChooser(intent, chooserTitle))
 }
 
@@ -1244,7 +1241,8 @@ private fun MoleculeViewer(
                                         tapNormX = tapNormX,
                                         tapNormY = tapNormY,
                                         cameraNode = cameraNode,
-                                        centerOffset = focusOffset
+                                        centerOffset = focusOffset,
+                                        showHydrogens = showHydrogens
                                     )
                                     if (bondPick != null && bondPick.second < 0.10f) {
                                         onBondSelected(bondPick.first)
@@ -1478,7 +1476,7 @@ private fun MeasurementOverlay(
         ) {
             Image(
                 painter = androidx.compose.ui.res.painterResource(com.music42.swiftyprotein.R.drawable.ic_launcher_foreground),
-                contentDescription = null,
+                contentDescription = "Molecule icon",
                 modifier = Modifier.size(28.dp)
             )
             Column(modifier = Modifier.weight(1f)) {
@@ -1528,7 +1526,7 @@ private fun AtomTooltip(
         ) {
             Image(
                 painter = androidx.compose.ui.res.painterResource(com.music42.swiftyprotein.R.drawable.ic_launcher_foreground),
-                contentDescription = null,
+                contentDescription = "Atom info",
                 modifier = Modifier.size(28.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
@@ -1548,16 +1546,29 @@ private enum class ShareFormat(val extension: String, val mimeType: String) {
 }
 
 
-private fun shareVideo(context: Context, file: File, ligandId: String) {
+private fun shareVideo(
+    context: Context,
+    file: File,
+    ligandId: String,
+    ligand: com.music42.swiftyprotein.data.model.Ligand?
+) {
     val uri = FileProvider.getUriForFile(
         context,
         "${context.packageName}.fileprovider",
         file
     )
+    val namePart = ligand?.name?.takeIf { it.isNotBlank() } ?: "Unknown ligand"
+    val atomsPart = ligand?.atoms?.size?.let { "Atoms: $it" } ?: "Atoms: ?"
+    val formulaPart = ligand?.formula?.takeIf { it.isNotBlank() }?.let { "Formula: $it" } ?: "Formula: ?"
+    val shareText = buildString {
+        append("Ligand $ligandId — $namePart\n")
+        append("$atomsPart · $formulaPart\n")
+        append("https://www.rcsb.org/ligand/$ligandId")
+    }
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "video/mp4"
         putExtra(Intent.EXTRA_STREAM, uri)
-        putExtra(Intent.EXTRA_TEXT, "Ligand $ligandId — rotation video\nhttps://www.rcsb.org/ligand/$ligandId")
+        putExtra(Intent.EXTRA_TEXT, shareText)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         clipData = ClipData.newUri(context.contentResolver, "video_${ligandId}", uri)
     }
@@ -1571,7 +1582,6 @@ private fun shareVideo(context: Context, file: File, ligandId: String) {
             )
         }
     }
-    (context as? MainActivity)?.suppressLoginOnResume = true
     context.startActivity(Intent.createChooser(intent, "Share Video"))
 }
 
@@ -1654,7 +1664,8 @@ private fun pickBond(
     tapNormX: Float,
     tapNormY: Float,
     cameraNode: io.github.sceneview.node.CameraNode,
-    centerOffset: Float3
+    centerOffset: Float3,
+    showHydrogens: Boolean = false
 ): Pair<Bond, Float>? {
     val atomsForCenter = ligand.atoms.filterNot {
         val e = it.element.uppercase().trim()
@@ -1664,7 +1675,8 @@ private fun pickBond(
     val cy = atomsForCenter.map { it.y }.average().toFloat()
     val cz = atomsForCenter.map { it.z }.average().toFloat()
 
-    val atomById = atomsForCenter.associateBy { it.id }
+    val pickableAtoms = if (showHydrogens) ligand.atoms else atomsForCenter
+    val atomById = pickableAtoms.associateBy { it.id }
     var best: Bond? = null
     var bestDist = Float.MAX_VALUE
 
@@ -1736,7 +1748,7 @@ private fun BondTooltip(
         ) {
             Image(
                 painter = androidx.compose.ui.res.painterResource(com.music42.swiftyprotein.R.drawable.ic_launcher_foreground),
-                contentDescription = null,
+                contentDescription = "Bond info",
                 modifier = Modifier.size(28.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
@@ -1847,7 +1859,7 @@ private fun ModeBanner(
         ) {
             Image(
                 painter = androidx.compose.ui.res.painterResource(com.music42.swiftyprotein.R.drawable.ic_launcher_foreground),
-                contentDescription = null,
+                contentDescription = "Measurement info",
                 modifier = Modifier.size(28.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
