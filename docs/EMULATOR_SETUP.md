@@ -26,7 +26,7 @@ The app needs working HTTPS access to download ligand data.
 
 ## Permissions the app will request (and why)
 
-Declared in `AndroidManifest.xml`:
+Declared in [`app/src/main/AndroidManifest.xml`](../app/src/main/AndroidManifest.xml):
 
 - **INTERNET**: download ligand data
 - **USE_BIOMETRIC**: fingerprint login

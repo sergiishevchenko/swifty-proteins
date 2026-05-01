@@ -11,13 +11,13 @@ Provide a simple local account system with:
 
 ## Key files
 
-- `app/src/main/java/com/music42/swiftyprotein/ui/login/LoginScreen.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/login/LoginViewModel.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/repository/AuthRepository.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/local/entity/User.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/local/UserDao.kt`
-- `app/src/main/java/com/music42/swiftyprotein/util/BiometricHelper.kt`
-- `app/src/main/java/com/music42/swiftyprotein/MainActivity.kt` (return-to-login policy)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/login/LoginScreen.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/login/LoginScreen.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/login/LoginViewModel.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/login/LoginViewModel.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/repository/AuthRepository.kt`](../app/src/main/java/com/music42/swiftyprotein/data/repository/AuthRepository.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/local/entity/User.kt`](../app/src/main/java/com/music42/swiftyprotein/data/local/entity/User.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/local/UserDao.kt`](../app/src/main/java/com/music42/swiftyprotein/data/local/UserDao.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/util/BiometricHelper.kt`](../app/src/main/java/com/music42/swiftyprotein/util/BiometricHelper.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/MainActivity.kt`](../app/src/main/java/com/music42/swiftyprotein/MainActivity.kt) (return-to-login policy)
 
 ## Data model
 

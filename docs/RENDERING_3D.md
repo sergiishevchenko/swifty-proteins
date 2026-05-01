@@ -6,10 +6,10 @@ Render a ligand in 3D with multiple visualization modes and interactive camera c
 
 ## Key files
 
-- `app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewViewModel.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/proteinview/MoleculeSceneBuilder.kt`
-- `app/src/main/java/com/music42/swiftyprotein/util/CpkColors.kt`
+- [`app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewViewModel.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewViewModel.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/proteinview/MoleculeSceneBuilder.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/proteinview/MoleculeSceneBuilder.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/util/CpkColors.kt`](../app/src/main/java/com/music42/swiftyprotein/util/CpkColors.kt)
 
 ## Rendering framework
 

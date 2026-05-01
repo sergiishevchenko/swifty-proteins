@@ -4,8 +4,8 @@ This project uses several UI overlays on top of a SceneView `SurfaceView`.
 
 ## Key files
 
-- `app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewViewModel.kt`
+- [`app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewViewModel.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewViewModel.kt)
 
 ## Why `Popup` is used
 

@@ -10,10 +10,10 @@ Convert an RCSB ligand CIF file into a lightweight in-app domain model:
 
 ## Key files
 
-- `app/src/main/java/com/music42/swiftyprotein/data/parser/CifParser.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/model/Ligand.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/model/Atom.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/model/Bond.kt`
+- [`app/src/main/java/com/music42/swiftyprotein/data/parser/CifParser.kt`](../app/src/main/java/com/music42/swiftyprotein/data/parser/CifParser.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/model/Ligand.kt`](../app/src/main/java/com/music42/swiftyprotein/data/model/Ligand.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/model/Atom.kt`](../app/src/main/java/com/music42/swiftyprotein/data/model/Atom.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/model/Bond.kt`](../app/src/main/java/com/music42/swiftyprotein/data/model/Bond.kt)
 
 ## Input assumptions
 

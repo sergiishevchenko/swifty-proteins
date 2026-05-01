@@ -6,10 +6,10 @@ Define the screen graph and the “always go back to Login” security behavior.
 
 ## Key files
 
-- `app/src/main/java/com/music42/swiftyprotein/ui/navigation/NavGraph.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/navigation/Screen.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/AppRoot.kt`
-- `app/src/main/java/com/music42/swiftyprotein/MainActivity.kt`
+- [`app/src/main/java/com/music42/swiftyprotein/ui/navigation/NavGraph.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/navigation/NavGraph.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/navigation/Screen.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/navigation/Screen.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/AppRoot.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/AppRoot.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/MainActivity.kt`](../app/src/main/java/com/music42/swiftyprotein/MainActivity.kt)
 
 ## Screens (typical)
 

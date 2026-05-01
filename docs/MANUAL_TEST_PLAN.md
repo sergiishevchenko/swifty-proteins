@@ -4,8 +4,8 @@ This checklist is designed to verify the **mandatory** and **bonus** requirement
 
 Recommended environment notes:
 
-- **Emulator**: Google Play system image (prefer stable API 34/35). See `docs/EMULATOR_SETUP.md`.
-- **Real device**: required for performance/UX verification and realistic biometric behavior.
+- **Emulator**: Google Play system image (prefer stable API 34/35). See [Emulator setup](EMULATOR_SETUP.md).
+- **Real device**: required for performance/UX verification and realistic biometric behavior. USB debugging on Xiaomi / MIUI: [Xiaomi device (USB)](XIAOMI_DEVICE_USB_SETUP.md).
 
 ---
 
@@ -92,7 +92,7 @@ This is a security requirement: when the app returns from background, Login shou
 
 ### 4) Ligand list (mandatory)
 
-- **List shows ligand IDs from `ligands.txt`**
+- **List shows ligand IDs from [`ligands.txt`](../app/src/main/res/raw/ligands.txt)**
   - Scroll.
   - Expected: smooth scrolling; no UI lockups.
 

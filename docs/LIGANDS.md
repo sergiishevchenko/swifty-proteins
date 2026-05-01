@@ -2,23 +2,21 @@
 
 ## Data Source Used by the App
 
-- Current endpoint:
-  `https://files.rcsb.org/ligands/download/{ID}.cif`
-- Example:
-  `https://files.rcsb.org/ligands/download/HEM.cif`
+- Current endpoint pattern: `https://files.rcsb.org/ligands/download/{ID}.cif`
+- Example: [HEM.cif (download)](https://files.rcsb.org/ligands/download/HEM.cif)
 
-`{ID}` here is a **ligand/chemical component ID** (CCD ID), for example `HEM`, `ATP`, `NAG`, or numeric-like IDs such as `001` from `ligands.txt`.
+`{ID}` here is a **ligand/chemical component ID** (CCD ID), for example `HEM`, `ATP`, `NAG`, or numeric-like IDs such as `001` from [`app/src/main/res/raw/ligands.txt`](../app/src/main/res/raw/ligands.txt).
 
 ---
 
-## The Core Reason: `ligands.txt` Contains Ligand IDs, Not PDB Entry IDs
+## The Core Reason: ligands.txt Contains Ligand IDs, Not PDB Entry IDs
 
 There are two different identifier systems:
 
 - **Ligand/CCD ID**: usually 3 characters (examples: `HEM`, `ATP`, `001`)
 - **PDB entry ID**: 4 characters (example: `4hhb`, `1crn`)
 
-`ligands.txt` contains the first type (ligand IDs).  
+[`app/src/main/res/raw/ligands.txt`](../app/src/main/res/raw/ligands.txt) contains the first type (ligand IDs).  
 But `.pdb` download URLs on RCSB are for the second type (full structure entries).
 
 So this does **not** work conceptually:
@@ -29,17 +27,17 @@ because `{id}` is not a valid PDB entry ID.
 
 ---
 
-## Why You Cannot Reliably Use `.pdb` with `ligands.txt`
+## Why You Cannot Reliably Use `.pdb` with ligands.txt
 
 ### 1) Endpoint mismatch
 
 RCSB ligand endpoint is:
 
-- `/ligands/download/{ID}.cif`
+- `/ligands/download/{ID}.cif` (example: [HEM.cif](https://files.rcsb.org/ligands/download/HEM.cif))
 
 RCSB legacy PDB endpoint is for entries:
 
-- `/download/{ENTRY}.pdb` (example: `/download/4hhb.pdb`)
+- `/download/{ENTRY}.pdb` (example: [4hhb.pdb](https://files.rcsb.org/download/4hhb.pdb))
 
 These are different resources with different ID domains.
 
@@ -50,7 +48,7 @@ Without choosing a specific entry, chain, and residue instance, there is no uniq
 
 ### 3) Assignment input drives format choice
 
-If input is `ligands.txt` (ligand IDs), the technically correct direct download from RCSB is ligand CIF, because that endpoint is keyed by ligand IDs.
+If input is [`app/src/main/res/raw/ligands.txt`](../app/src/main/res/raw/ligands.txt) (ligand IDs), the technically correct direct download from RCSB is ligand CIF, because that endpoint is keyed by ligand IDs.
 
 ### 4) Parsing quality
 
@@ -122,8 +120,8 @@ Important: this file is tied to a **specific entry** (here `4HHB`) and a **speci
 
 To use `.pdb` strictly, project input must change from ligand IDs to entry IDs, for example:
 
-1. replace `ligands.txt` with a list of 4-char PDB entry IDs
-2. download `https://files.rcsb.org/download/{entry}.pdb`
+1. replace [`app/src/main/res/raw/ligands.txt`](../app/src/main/res/raw/ligands.txt) with a list of 4-char PDB entry IDs
+2. download `https://files.rcsb.org/download/{entry}.pdb` (example: [4hhb.pdb](https://files.rcsb.org/download/4hhb.pdb))
 3. parse `HETATM`/`CONECT`
 4. choose specific ligand occurrences inside each entry
 
@@ -133,7 +131,5 @@ This is a different data model and a different product scope than "list ligand I
 
 ## References
 
-- RCSB File Download Services:  
-  [https://www.rcsb.org/docs/programmatic-access/file-download-services](https://www.rcsb.org/docs/programmatic-access/file-download-services)
-- RCSB ligands download root pattern used in this app:  
-  `https://files.rcsb.org/ligands/download/{ID}.cif`
+- [RCSB File Download Services](https://www.rcsb.org/docs/programmatic-access/file-download-services)
+- RCSB ligands download pattern used in this app: `https://files.rcsb.org/ligands/download/{ID}.cif` — example [HEM.cif](https://files.rcsb.org/ligands/download/HEM.cif)

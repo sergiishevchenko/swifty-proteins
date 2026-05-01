@@ -8,12 +8,12 @@ Allow users to save ligand IDs locally and revisit them quickly.
 
 ### Key files
 
-- `app/src/main/java/com/music42/swiftyprotein/ui/favorites/FavoritesScreen.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/favorites/FavoritesViewModel.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/repository/FavoritesRepository.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/local/FavoritesDao.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/local/entity/FavoriteLigand.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/local/AppDatabase.kt`
+- [`app/src/main/java/com/music42/swiftyprotein/ui/favorites/FavoritesScreen.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/favorites/FavoritesScreen.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/favorites/FavoritesViewModel.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/favorites/FavoritesViewModel.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/repository/FavoritesRepository.kt`](../app/src/main/java/com/music42/swiftyprotein/data/repository/FavoritesRepository.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/local/FavoritesDao.kt`](../app/src/main/java/com/music42/swiftyprotein/data/local/FavoritesDao.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/local/entity/FavoriteLigand.kt`](../app/src/main/java/com/music42/swiftyprotein/data/local/entity/FavoriteLigand.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/local/AppDatabase.kt`](../app/src/main/java/com/music42/swiftyprotein/data/local/AppDatabase.kt)
 
 ### Storage
 
@@ -27,8 +27,8 @@ Show two ligands side-by-side in a simplified viewer so the user can visually co
 
 ### Key files
 
-- `app/src/main/java/com/music42/swiftyprotein/ui/compare/CompareScreen.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/compare/CompareViewModel.kt`
+- [`app/src/main/java/com/music42/swiftyprotein/ui/compare/CompareScreen.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/compare/CompareScreen.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/compare/CompareViewModel.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/compare/CompareViewModel.kt)
 
 ### Behavior
 

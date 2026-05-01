@@ -2,8 +2,8 @@
 
 ## Key files
 
-- `app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt`
-- `app/src/main/res/xml/file_paths.xml`
+- [`app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt)
+- [`app/src/main/res/xml/file_paths.xml`](../app/src/main/res/xml/file_paths.xml)
 
 ## Screenshot sharing
 

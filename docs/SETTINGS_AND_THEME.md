@@ -10,12 +10,12 @@ Provide basic app preferences:
 
 ## Key files
 
-- `app/src/main/java/com/music42/swiftyprotein/ui/settings/SettingsScreen.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/settings/SettingsViewModel.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/settings/SettingsRepository.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/settings/AppSettings.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/onboarding/OnboardingScreen.kt`
-- `app/src/main/java/com/music42/swiftyprotein/ui/theme/Theme.kt`
+- [`app/src/main/java/com/music42/swiftyprotein/ui/settings/SettingsScreen.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/settings/SettingsScreen.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/settings/SettingsViewModel.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/settings/SettingsViewModel.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/settings/SettingsRepository.kt`](../app/src/main/java/com/music42/swiftyprotein/data/settings/SettingsRepository.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/settings/AppSettings.kt`](../app/src/main/java/com/music42/swiftyprotein/data/settings/AppSettings.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/onboarding/OnboardingScreen.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/onboarding/OnboardingScreen.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/theme/Theme.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/theme/Theme.kt)
 
 ## Storage
 

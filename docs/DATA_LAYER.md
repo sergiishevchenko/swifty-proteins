@@ -6,23 +6,24 @@ Load ligand IDs from a bundled list, download CIF files from RCSB, cache them, a
 
 ## Key files
 
-- `app/src/main/res/raw/ligands.txt`
-- `app/src/main/java/com/music42/swiftyprotein/data/remote/RcsbApi.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/repository/LigandRepository.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/parser/CifParser.kt`
-- `app/src/main/java/com/music42/swiftyprotein/data/model/Ligand.kt`
+- [`app/src/main/res/raw/ligands.txt`](../app/src/main/res/raw/ligands.txt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/remote/RcsbApi.kt`](../app/src/main/java/com/music42/swiftyprotein/data/remote/RcsbApi.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/repository/LigandRepository.kt`](../app/src/main/java/com/music42/swiftyprotein/data/repository/LigandRepository.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/parser/CifParser.kt`](../app/src/main/java/com/music42/swiftyprotein/data/parser/CifParser.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/data/model/Ligand.kt`](../app/src/main/java/com/music42/swiftyprotein/data/model/Ligand.kt)
 
 ## Ligand IDs source
 
-The catalog is loaded from `res/raw/ligands.txt`.
+The catalog is loaded from [`app/src/main/res/raw/ligands.txt`](../app/src/main/res/raw/ligands.txt).
 
 ## Network endpoint
 
 The app fetches CIF from:
 
-- `https://files.rcsb.org/ligands/view/{ID}.cif`
+- URL pattern: `https://files.rcsb.org/ligands/view/{ID}.cif`
+- Example: [HEM.cif (view)](https://files.rcsb.org/ligands/view/HEM.cif)
 
-Implemented via Retrofit in `RcsbApi`.
+Implemented via Retrofit in [`RcsbApi.kt`](../app/src/main/java/com/music42/swiftyprotein/data/remote/RcsbApi.kt).
 
 ## Caching strategy
 
