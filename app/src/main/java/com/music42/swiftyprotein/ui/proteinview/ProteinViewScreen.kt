@@ -761,6 +761,24 @@ fun ProteinViewScreen(
         )
     }
 
+    if (uiState.largeMoleculeWarning) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { viewModel.dismissLargeMoleculeWarning() },
+            title = { Text("Large molecule") },
+            text = {
+                Text(
+                    "This ligand has ${uiState.ligand?.atoms?.size ?: "many"} atoms. " +
+                        "Rendering quality has been reduced for better performance."
+                )
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { viewModel.dismissLargeMoleculeWarning() }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
 }
 
 private fun shareImageFile(

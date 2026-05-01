@@ -38,7 +38,8 @@ data class ProteinViewUiState(
     val measurementMode: Boolean = false,
     val measurementAtomIds: List<String> = emptyList(),
     val loadingStage: String = "Loading",
-    val loadingProgress: Float = 0f
+    val loadingProgress: Float = 0f,
+    val largeMoleculeWarning: Boolean = false
 )
 
 @HiltViewModel
@@ -50,6 +51,10 @@ class ProteinViewViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ProteinViewUiState())
     val uiState: StateFlow<ProteinViewUiState> = _uiState.asStateFlow()
+
+    companion object {
+        const val LARGE_MOLECULE_THRESHOLD = 200
+    }
 
     init {
         val ligandId: String = savedStateHandle["ligandId"] ?: ""
@@ -82,7 +87,18 @@ class ProteinViewViewModel @Inject constructor(
             }
             result.fold(
                 onSuccess = { ligand ->
-                    _uiState.update { it.copy(isLoading = false, ligand = ligand, loadingProgress = 1f) }
+                    val isLarge = ligand.atoms.size > LARGE_MOLECULE_THRESHOLD
+                    _uiState.update { state ->
+                        state.copy(
+                            isLoading = false,
+                            ligand = ligand,
+                            loadingProgress = 1f,
+                            largeMoleculeWarning = isLarge,
+                            showHydrogens = if (isLarge) false else state.showHydrogens,
+                            visualizationMode = if (isLarge && state.visualizationMode == VisualizationMode.SPACE_FILL)
+                                VisualizationMode.WIREFRAME else state.visualizationMode
+                        )
+                    }
                 },
                 onFailure = { error ->
                     _uiState.update {
@@ -154,5 +170,9 @@ class ProteinViewViewModel @Inject constructor(
 
     fun clearMeasurement() {
         _uiState.update { it.copy(measurementAtomIds = emptyList()) }
+    }
+
+    fun dismissLargeMoleculeWarning() {
+        _uiState.update { it.copy(largeMoleculeWarning = false) }
     }
 }

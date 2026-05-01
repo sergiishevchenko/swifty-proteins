@@ -33,12 +33,25 @@ object MoleculeSceneBuilder {
     private const val MULTI_STICK_RADIUS = 0.05f
     private const val DOUBLE_BOND_OFFSET = 0.12f
     private const val TRIPLE_BOND_OFFSET = 0.14f
-    private const val SPHERE_STACKS = 16
-    private const val SPHERE_SLICES = 16
+    private const val SPHERE_STACKS_HIGH = 16
+    private const val SPHERE_SLICES_HIGH = 16
+    private const val SPHERE_STACKS_MED = 12
+    private const val SPHERE_SLICES_MED = 12
+    private const val SPHERE_STACKS_LOW = 8
+    private const val SPHERE_SLICES_LOW = 8
+
+    private const val LOD_THRESHOLD_MED = 100
+    private const val LOD_THRESHOLD_LOW = 200
     const val SPACE_FILL_BASE_SCALE = 2.5f
     const val SPACE_FILL_REF_VDW = 1.70f
 
     private const val HYDROGEN_RADIUS_SCALE = 0.55f
+
+    private fun sphereResolution(atomCount: Int): Pair<Int, Int> = when {
+        atomCount > LOD_THRESHOLD_LOW -> SPHERE_STACKS_LOW to SPHERE_SLICES_LOW
+        atomCount > LOD_THRESHOLD_MED -> SPHERE_STACKS_MED to SPHERE_SLICES_MED
+        else -> SPHERE_STACKS_HIGH to SPHERE_SLICES_HIGH
+    }
 
     fun build(
         engine: Engine,
@@ -67,6 +80,10 @@ object MoleculeSceneBuilder {
 
         val highlight = highlightElement?.uppercase()?.trim()?.takeIf { it.isNotEmpty() }
 
+        val (sphereStacks, sphereSlices) = sphereResolution(atomsForRender.size)
+
+        val materialCache = mutableMapOf<Color, com.google.android.filament.MaterialInstance>()
+
         if (mode != VisualizationMode.STICKS_ONLY && mode != VisualizationMode.WIREFRAME) {
             for (atom in atomsForRender) {
                 val isHydrogen = atom.element.uppercase().trim().let { it == "H" || it == "D" }
@@ -85,16 +102,18 @@ object MoleculeSceneBuilder {
                 val sphere = Sphere.Builder()
                     .radius(radius)
                     .center(Position(0f, 0f, 0f))
-                    .stacks(SPHERE_STACKS)
-                    .slices(SPHERE_SLICES)
+                    .stacks(sphereStacks)
+                    .slices(sphereSlices)
                     .build(engine)
 
-                val material = materialLoader.createColorInstance(
-                    color = color,
-                    metallic = 0.0f,
-                    roughness = 0.6f,
-                    reflectance = 0.3f
-                )
+                val material = materialCache.getOrPut(color) {
+                    materialLoader.createColorInstance(
+                        color = color,
+                        metallic = 0.0f,
+                        roughness = 0.6f,
+                        reflectance = 0.3f
+                    )
+                }
 
                 val meshNode = MeshNode(
                     engine = engine,
@@ -175,12 +194,12 @@ object MoleculeSceneBuilder {
                     addHalfCylinder(
                         engine, materialLoader, parentNode,
                         Float3((p1.x + mid.x) / 2f, (p1.y + mid.y) / 2f, (p1.z + mid.z) / 2f),
-                        halfLen, radius, color1, diff
+                        halfLen, radius, color1, diff, materialCache
                     )
                     addHalfCylinder(
                         engine, materialLoader, parentNode,
                         Float3((mid.x + p2.x) / 2f, (mid.y + p2.y) / 2f, (mid.z + p2.z) / 2f),
-                        halfLen, radius, color2, diff
+                        halfLen, radius, color2, diff, materialCache
                     )
                 }
             }
@@ -242,7 +261,8 @@ object MoleculeSceneBuilder {
         height: Float,
         radius: Float,
         color: androidx.compose.ui.graphics.Color,
-        direction: Float3
+        direction: Float3,
+        materialCache: MutableMap<Color, com.google.android.filament.MaterialInstance>
     ) {
         val cylinder = Cylinder.Builder()
             .radius(radius)
@@ -250,12 +270,14 @@ object MoleculeSceneBuilder {
             .center(Position(0f, 0f, 0f))
             .build(engine)
 
-        val material = materialLoader.createColorInstance(
-            color = color,
-            metallic = 0.0f,
-            roughness = 0.4f,
-            reflectance = 0.5f
-        )
+        val material = materialCache.getOrPut(color) {
+            materialLoader.createColorInstance(
+                color = color,
+                metallic = 0.0f,
+                roughness = 0.4f,
+                reflectance = 0.5f
+            )
+        }
 
         val meshNode = MeshNode(
             engine = engine,
