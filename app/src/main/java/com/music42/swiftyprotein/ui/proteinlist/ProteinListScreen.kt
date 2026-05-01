@@ -155,8 +155,18 @@ fun ProteinListScreen(
                             items = uiState.filteredLigands,
                             key = { it }
                         ) { ligandId ->
+                            val info = uiState.cachedInfo[ligandId]
                             LigandItem(
                                 ligandId = ligandId,
+                                subtitle = info?.let {
+                                    buildString {
+                                        if (it.formula.isNotBlank()) append(it.formula)
+                                        if (it.atomCount > 0) {
+                                            if (isNotEmpty()) append(" · ")
+                                            append("${it.atomCount} atoms")
+                                        }
+                                    }.ifEmpty { null }
+                                },
                                 isLoading = uiState.loadingLigandId == ligandId,
                                 isFavorite = uiState.favoriteIds.contains(ligandId),
                                 onToggleFavorite = { viewModel.onToggleFavorite(ligandId) },
@@ -214,6 +224,7 @@ fun ProteinListScreen(
 @Composable
 private fun LigandItem(
     ligandId: String,
+    subtitle: String?,
     isLoading: Boolean,
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit,
@@ -252,12 +263,20 @@ private fun LigandItem(
                 .padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = ligandId,
-                fontWeight = FontWeight.SemiBold,
-                color = accentGreen,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = ligandId,
+                    fontWeight = FontWeight.SemiBold,
+                    color = accentGreen
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(22.dp),
