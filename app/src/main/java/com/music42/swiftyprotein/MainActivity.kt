@@ -18,7 +18,6 @@ class MainActivity : FragmentActivity() {
         private set
 
     private var wasInBackground = false
-    var suppressLoginOnResume = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -54,11 +53,7 @@ class MainActivity : FragmentActivity() {
         super.onResume()
         if (wasInBackground) {
             wasInBackground = false
-            if (suppressLoginOnResume) {
-                suppressLoginOnResume = false
-            } else {
-                shouldShowLogin = true
-            }
+            shouldShowLogin = true
         }
     }
 }
