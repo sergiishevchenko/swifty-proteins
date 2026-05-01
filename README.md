@@ -113,7 +113,8 @@ app/src/main/java/com/music42/swiftyprotein/
 - Fingerprint login via AndroidX Biometric (`BiometricManager` + `BiometricPrompt`).
 - Password fallback when biometric is unavailable.
 - Error popup on failed authentication.
-- Login screen is shown again when app returns from background.
+- Login screen is shown again when app returns from background (security requirement).
+- Biometric login is available only for the **last signed-in user** (username must match).
 
 ### Ligand Catalog
 
@@ -121,6 +122,7 @@ app/src/main/java/com/music42/swiftyprotein/
 - Search by substring (case-insensitive).
 - Empty search state message.
 - Loading/error handling for selection and fetch failures.
+- List rows can show cached ligand info (formula + atom count) when available.
 
 ### Favorites + Compare
 
@@ -144,6 +146,7 @@ app/src/main/java/com/music42/swiftyprotein/
 - Camera orbit/rotate interactions.
 - Measurement mode (Balls only): pick 2 atoms for distance (Å), 3 atoms for angle (°).
 - Atom labels (Balls only): overlay labels that track atoms while moving/zooming.
+- Large-molecule handling: adaptive sphere resolution (LOD) + warning + automatic downgrade for heavy scenes.
 
 ### Sharing
 
@@ -157,6 +160,8 @@ app/src/main/java/com/music42/swiftyprotein/
 - Splash screen with enforced visible duration (~2s).
 - Material 3 styling across screens.
 - Model loading card with progress indicators and rotating status messages.
+- Onboarding: multi-step walkthrough (gestures, modes/sharing, favorites/settings).
+- Settings: theme, default visualization mode, and “show hydrogens by default”.
 - Themed icon and round icon.
 
 ## Compliance Snapshot
