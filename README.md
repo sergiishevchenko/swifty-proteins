@@ -166,7 +166,7 @@ app/src/main/java/com/music42/swiftyprotein/
 
 ## Screenshots & demo
 
-Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). **Note:** GitHub does not render an inline `<video>` player in README files for repo-local MP4 paths, so the demo below is a **clickable preview** that opens [`ligand_001.mp4`](screenshots/ligand_001.mp4).
+Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). The demo video below is embedded with an **absolute** `raw.githubusercontent.com` URL so GitHub’s README renderer can show a player (relative `screenshots/…mp4` paths are ignored for `<video>`).
 
 ### Launch, sign-in, and onboarding
 
@@ -273,10 +273,23 @@ Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth a
 ### Screen recording
 
 <p align="center">
-  <a href="screenshots/ligand_001.mp4" title="Open demo MP4"><img src="screenshots/ligand_001.png" alt="Demo video — click to open ligand_001.mp4" width="300" style="max-width: 100%; height: auto;"/></a>
+  <video
+    width="300"
+    style="max-width: 100%; height: auto;"
+    controls
+    playsinline
+    preload="metadata"
+    poster="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.png"
+  >
+    <source
+      src="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.mp4"
+      type="video/mp4"
+    />
+    <a href="screenshots/ligand_001.mp4">Download <code>ligand_001.mp4</code></a>
+  </video>
 </p>
 
-<p align="center"><em>Click the preview to open <a href="screenshots/ligand_001.mp4"><code>ligand_001.mp4</code></a> (catalog → ligand 001 → 3D). After clone, play the file locally from <code>screenshots/ligand_001.mp4</code>.</em></p>
+<p align="center"><em>Catalog → ligand 001 → 3D. Local copy: <a href="screenshots/ligand_001.mp4"><code>screenshots/ligand_001.mp4</code></a>.</em></p>
 
 ## Compliance Snapshot
 
