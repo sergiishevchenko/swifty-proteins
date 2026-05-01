@@ -78,6 +78,7 @@ class LoginViewModel @Inject constructor(
                 errorMessage = null
             )
         }
+        checkBiometricAvailability()
     }
 
     fun onSubmit() {
