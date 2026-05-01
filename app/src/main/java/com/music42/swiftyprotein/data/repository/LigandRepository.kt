@@ -40,6 +40,20 @@ class LigandRepository @Inject constructor(
         }
     }
 
+    data class LigandCacheInfo(val formula: String, val atomCount: Int)
+
+    suspend fun getCachedInfo(ligandId: String): LigandCacheInfo? = withContext(Dispatchers.IO) {
+        val file = cifCacheFile(ligandId)
+        if (!file.exists()) return@withContext null
+        try {
+            val ligand = CifParser.parse(ligandId, file.readText())
+            if (ligand.atoms.isEmpty()) null
+            else LigandCacheInfo(ligand.formula, ligand.atoms.size)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     suspend fun fetchLigand(ligandId: String): Result<Ligand> = withContext(Dispatchers.IO) {
         return@withContext fetchLigand(ligandId, null)
     }
@@ -94,6 +108,8 @@ class LigandRepository @Inject constructor(
             Result.failure(Exception("No internet connection. Please check your network."))
         } catch (e: SocketTimeoutException) {
             Result.failure(Exception("Request timeout. Please try again."))
+        } catch (e: java.io.IOException) {
+            Result.failure(Exception("No internet connection. Please check your network."))
         } catch (e: Exception) {
             
             val msg = e.localizedMessage?.takeIf { it.isNotBlank() } ?: "Unknown error"
