@@ -258,8 +258,8 @@ Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth a
 ### Export and large structures
 
 <p align="center">
-  <img src="screenshots/export_format_ligand_001.png" alt="Export format choice" width="300" style="max-width: 100%; height: auto;"/>
   <img src="screenshots/ligand_001_export_format.png" alt="Export format screen" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/export_format_ligand_001.png" alt="Export format choice" width="300" style="max-width: 100%; height: auto;"/>
 </p>
 
 <p align="center"><em>Screenshot share: choosing PNG or JPEG before sending.</em></p>
