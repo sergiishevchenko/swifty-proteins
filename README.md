@@ -14,6 +14,10 @@ Main user flow:
 5. App parses molecular data and renders interactive 3D scene.
 6. User explores model (zoom/rotate/mode switch), taps atoms/bonds for tooltip, measures distances/angles, toggles labels, and can share screenshots/videos.
 
+## Documentation
+
+- [Architecture overview](docs/ARCHITECTURE_OVERVIEW.md)
+
 ## Quick Start
 
 1. Open the project in Android Studio and wait for Gradle sync.
