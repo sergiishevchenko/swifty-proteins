@@ -2,6 +2,122 @@
 
 Android implementation of the Swifty Proteins assignment: authentication, searchable ligand catalog, and interactive 3D molecular visualization.
 
+## Demo
+
+They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). **Screen recording:** GitHub’s README sanitizer removes HTML `<video>` tags, so there is no in-page player here—use the preview link below (opens the MP4 in the browser or downloads it, depending on your client).
+
+### Launch, sign-in, and onboarding
+
+<p align="center">
+  <img src="screenshots/splash.png" alt="Splash screen" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/registration.png" alt="Registration and login" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Left to right: splash; registration/login.</em></p>
+
+<p align="center">
+  <img src="screenshots/biometric.png" alt="Biometric prompt" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/biometric2.png" alt="Biometric state" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Left to right: fingerprint sign-in prompt; another biometric state (e.g. after switching user or changing device biometrics).</em></p>
+
+<table align="center" style="border-collapse: collapse; margin-left: auto; margin-right: auto;">
+  <tr>
+    <td style="padding: 0 4px; vertical-align: top;"><img src="screenshots/tour.png" alt="Onboarding page 1" width="300" style="max-width: 100%; height: auto; display: block;"/></td>
+    <td style="padding: 0 4px; vertical-align: top;"><img src="screenshots/tour2.png" alt="Onboarding page 2" width="300" style="max-width: 100%; height: auto; display: block;"/></td>
+    <td style="padding: 0 4px; vertical-align: top;"><img src="screenshots/tour3.png" alt="Onboarding page 3" width="300" style="max-width: 100%; height: auto; display: block;"/></td>
+  </tr>
+</table>
+
+<p align="center"><em>Multi-step onboarding (one row): gestures/camera; modes and sharing; favorites and settings.</em></p>
+
+### Catalog, search, favorites, compare
+
+<p align="center">
+  <img src="screenshots/ligands.png" alt="Ligand list" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/search.png" alt="Search ligands" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Local ligand list; substring search.</em></p>
+
+<p align="center">
+  <img src="screenshots/favorites.png" alt="Favorites" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/compare.png" alt="Compare two ligands" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Favorites; side-by-side compare from favorites.</em></p>
+
+### Settings
+
+<p align="center">
+  <img src="screenshots/settings.png" alt="Settings" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Theme, default visualization mode, default hydrogen visibility.</em></p>
+
+### 3D viewer (ligand 001): modes and tools
+
+<p align="center">
+  <img src="screenshots/ligand_001.png" alt="Balls and stick" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/ligand_001_fill.png" alt="Space fill" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Ball &amp; Stick (default) and Space Fill.</em></p>
+
+<p align="center">
+  <img src="screenshots/ligand_001_sticks.png" alt="Sticks mode" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/ligand_001_wire.png" alt="Wireframe" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Sticks and Wireframe.</em></p>
+
+<p align="center">
+  <img src="screenshots/ligand_001_hydrogens.png" alt="Hydrogens" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/ligand_001_labels.png" alt="Atom labels" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Hydrogens on; atom labels (Balls mode).</em></p>
+
+<p align="center">
+  <img src="screenshots/ligand_001_tap_atom.png" alt="Tap atom tooltip" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Atom tap: tooltip with element, name, and atom id.</em></p>
+
+<p align="center">
+  <img src="screenshots/ligand_001_measure.png" alt="Measure mode" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/ligand_001_measure_distance.png" alt="Distance measurement" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/ligand_001_measure_angle.png" alt="Angle measurement" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Measurement mode; distance between two atoms (Å); angle through three atoms (°).</em></p>
+
+### Export and large structures
+
+<p align="center">
+  <img src="screenshots/ligand_001_export_format.png" alt="Export format screen" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/export_format_ligand_001.png" alt="Export format choice" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Screenshot share: choosing PNG or JPEG before sending.</em></p>
+
+<p align="center">
+  <img src="screenshots/large%20molecule.png" alt="Large molecule warning" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Heavy ligand: warning and automatic scene simplification (LOD) for stability and memory.</em></p>
+
+### Screen recording
+
+<p align="center">
+  <a href="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.mp4" title="Open MP4 (browser usually plays it)"><img src="screenshots/ligand_001.png" alt="Screen recording: tap to open ligand_001.mp4" width="300" style="max-width: 100%; height: auto;"/></a>
+</p>
+
+<p align="center"><strong><a href="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.mp4">▶ Play screen recording (MP4)</a></strong></p>
+
+<p align="center"><em>Flow: catalog → ligand 001 → 3D. Repo-relative copy: <a href="screenshots/ligand_001.mp4"><code>screenshots/ligand_001.mp4</code></a>.</em></p>
+
 ## Overview
 
 The application is built as a classic Android app using Jetpack Compose and MVVM.  
@@ -163,122 +279,6 @@ app/src/main/java/com/music42/swiftyprotein/
 - Onboarding: multi-step walkthrough (gestures, modes/sharing, favorites/settings).
 - Settings: theme, default visualization mode, and “show hydrogens by default”.
 - Themed icon and round icon.
-
-## Screenshots & demo
-
-Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). **Screen recording:** GitHub’s README sanitizer removes HTML `<video>` tags, so there is no in-page player here—use the preview link below (opens the MP4 in the browser or downloads it, depending on your client).
-
-### Launch, sign-in, and onboarding
-
-<p align="center">
-  <img src="screenshots/splash.png" alt="Splash screen" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/registration.png" alt="Registration and login" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Left to right: splash; registration/login.</em></p>
-
-<p align="center">
-  <img src="screenshots/biometric.png" alt="Biometric prompt" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/biometric2.png" alt="Biometric state" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Left to right: fingerprint sign-in prompt; another biometric state (e.g. after switching user or changing device biometrics).</em></p>
-
-<table align="center" style="border-collapse: collapse; margin-left: auto; margin-right: auto;">
-  <tr>
-    <td style="padding: 0 4px; vertical-align: top;"><img src="screenshots/tour.png" alt="Onboarding page 1" width="300" style="max-width: 100%; height: auto; display: block;"/></td>
-    <td style="padding: 0 4px; vertical-align: top;"><img src="screenshots/tour2.png" alt="Onboarding page 2" width="300" style="max-width: 100%; height: auto; display: block;"/></td>
-    <td style="padding: 0 4px; vertical-align: top;"><img src="screenshots/tour3.png" alt="Onboarding page 3" width="300" style="max-width: 100%; height: auto; display: block;"/></td>
-  </tr>
-</table>
-
-<p align="center"><em>Multi-step onboarding (one row): gestures/camera; modes and sharing; favorites and settings.</em></p>
-
-### Catalog, search, favorites, compare
-
-<p align="center">
-  <img src="screenshots/ligands.png" alt="Ligand list" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/search.png" alt="Search ligands" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Local ligand list; substring search.</em></p>
-
-<p align="center">
-  <img src="screenshots/favorites.png" alt="Favorites" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/compare.png" alt="Compare two ligands" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Favorites; side-by-side compare from favorites.</em></p>
-
-### Settings
-
-<p align="center">
-  <img src="screenshots/settings.png" alt="Settings" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Theme, default visualization mode, default hydrogen visibility.</em></p>
-
-### 3D viewer (ligand 001): modes and tools
-
-<p align="center">
-  <img src="screenshots/ligand_001.png" alt="Balls and stick" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/ligand_001_fill.png" alt="Space fill" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Ball &amp; Stick (default) and Space Fill.</em></p>
-
-<p align="center">
-  <img src="screenshots/ligand_001_sticks.png" alt="Sticks mode" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/ligand_001_wire.png" alt="Wireframe" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Sticks and Wireframe.</em></p>
-
-<p align="center">
-  <img src="screenshots/ligand_001_hydrogens.png" alt="Hydrogens" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/ligand_001_labels.png" alt="Atom labels" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Hydrogens on; atom labels (Balls mode).</em></p>
-
-<p align="center">
-  <img src="screenshots/ligand_001_tap_atom.png" alt="Tap atom tooltip" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Atom tap: tooltip with element, name, and atom id.</em></p>
-
-<p align="center">
-  <img src="screenshots/ligand_001_measure.png" alt="Measure mode" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/ligand_001_measure_distance.png" alt="Distance measurement" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/ligand_001_measure_angle.png" alt="Angle measurement" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Measurement mode; distance between two atoms (Å); angle through three atoms (°).</em></p>
-
-### Export and large structures
-
-<p align="center">
-  <img src="screenshots/ligand_001_export_format.png" alt="Export format screen" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/export_format_ligand_001.png" alt="Export format choice" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Screenshot share: choosing PNG or JPEG before sending.</em></p>
-
-<p align="center">
-  <img src="screenshots/large%20molecule.png" alt="Large molecule warning" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Heavy ligand: warning and automatic scene simplification (LOD) for stability and memory.</em></p>
-
-### Screen recording
-
-<p align="center">
-  <a href="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.mp4" title="Open MP4 (browser usually plays it)"><img src="screenshots/ligand_001.png" alt="Screen recording: tap to open ligand_001.mp4" width="300" style="max-width: 100%; height: auto;"/></a>
-</p>
-
-<p align="center"><strong><a href="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.mp4">▶ Play screen recording (MP4)</a></strong></p>
-
-<p align="center"><em>Flow: catalog → ligand 001 → 3D. Repo-relative copy: <a href="screenshots/ligand_001.mp4"><code>screenshots/ligand_001.mp4</code></a>.</em></p>
 
 ## Compliance Snapshot
 
