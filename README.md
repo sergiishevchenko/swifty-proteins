@@ -4,7 +4,7 @@ Android implementation of the Swifty Proteins assignment: authentication, search
 
 ## Demo
 
-Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). **Screen recording:** GitHub’s README sanitizer removes HTML `<video>` tags, so there is no in-page player here—use the preview link below (opens the MP4 in the browser or downloads it, depending on your client).
+Assets live in [`screenshots/`](screenshots/). Order below: onboarding → catalog/search → 3D viewer (**001**) → export / large structures → screen recording → favorites, compare, and settings. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). **Screen recording:** GitHub’s README sanitizer removes HTML `<video>` tags, so there is no in-page player here—use the preview link below (opens the MP4 in the browser or downloads it, depending on your client).
 
 ### Launch, sign-in, and onboarding
 
@@ -32,7 +32,7 @@ Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth a
 
 <p align="center"><em>Multi-step onboarding (one row): gestures/camera; modes and sharing; favorites and settings.</em></p>
 
-### Catalog, search, favorites, compare
+### Catalog and search
 
 <p align="center">
   <img src="screenshots/ligands.png" alt="Ligand list" width="300" style="max-width: 100%; height: auto;"/>
@@ -40,21 +40,6 @@ Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth a
 </p>
 
 <p align="center"><em>Local ligand list; substring search.</em></p>
-
-<p align="center">
-  <img src="screenshots/favorites.png" alt="Favorites" width="300" style="max-width: 100%; height: auto;"/>
-  <img src="screenshots/compare.png" alt="Compare two ligands" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Favorites; side-by-side compare from favorites.</em></p>
-
-### Settings
-
-<p align="center">
-  <img src="screenshots/settings.png" alt="Settings" width="300" style="max-width: 100%; height: auto;"/>
-</p>
-
-<p align="center"><em>Theme, default visualization mode, default hydrogen visibility.</em></p>
 
 ### 3D viewer (ligand 001): modes and tools
 
@@ -117,6 +102,23 @@ Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth a
 <p align="center"><strong><a href="https://raw.githubusercontent.com/sergiishevchenko/swifty-proteins/main/screenshots/ligand_001.mp4">▶ Play screen recording (MP4)</a></strong></p>
 
 <p align="center"><em>Flow: catalog → ligand 001 → 3D. Repo-relative copy: <a href="screenshots/ligand_001.mp4"><code>screenshots/ligand_001.mp4</code></a>.</em></p>
+
+### Favorites and compare
+
+<p align="center">
+  <img src="screenshots/favorites.png" alt="Favorites" width="300" style="max-width: 100%; height: auto;"/>
+  <img src="screenshots/compare.png" alt="Compare two ligands" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Favorites; side-by-side compare from favorites.</em></p>
+
+### Settings
+
+<p align="center">
+  <img src="screenshots/settings.png" alt="Settings" width="300" style="max-width: 100%; height: auto;"/>
+</p>
+
+<p align="center"><em>Theme, default visualization mode, default hydrogen visibility.</em></p>
 
 ## Overview
 
