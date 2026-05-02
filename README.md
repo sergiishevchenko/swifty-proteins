@@ -4,6 +4,10 @@ Android implementation of the Swifty Proteins assignment: authentication, search
 
 ## Demo
 
+<details open>
+<summary><strong>Show gallery</strong> — screenshots &amp; screen recording (click to collapse)</summary>
+
+
 Assets live in [`screenshots/`](screenshots/). Order below: onboarding → catalog/search → 3D viewer (**001**) → export / large structures → screen recording → favorites, compare, and settings. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). **Screen recording:** GitHub’s README sanitizer removes HTML `<video>` tags, so there is no in-page player here—use the preview link below (opens the MP4 in the browser or downloads it, depending on your client).
 
 ### Launch, sign-in, and onboarding
@@ -119,6 +123,9 @@ Assets live in [`screenshots/`](screenshots/). Order below: onboarding → catal
 </p>
 
 <p align="center"><em>Theme, default visualization mode, default hydrogen visibility.</em></p>
+
+
+</details>
 
 ## Overview
 
