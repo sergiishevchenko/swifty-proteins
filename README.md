@@ -4,7 +4,7 @@ Android implementation of the Swifty Proteins assignment: authentication, search
 
 ## Demo
 
-They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). **Screen recording:** GitHub’s README sanitizer removes HTML `<video>` tags, so there is no in-page player here—use the preview link below (opens the MP4 in the browser or downloads it, depending on your client).
+Assets live in [`screenshots/`](screenshots/). They follow the main flow: auth and onboarding, catalog, settings, **001** in every visualization mode, export, large-molecule handling, and a screen recording. All screenshots use the same display width (`300px`, capped with `max-width: 100%` on small screens). **Screen recording:** GitHub’s README sanitizer removes HTML `<video>` tags, so there is no in-page player here—use the preview link below (opens the MP4 in the browser or downloads it, depending on your client).
 
 ### Launch, sign-in, and onboarding
 
