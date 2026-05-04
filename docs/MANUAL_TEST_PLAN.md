@@ -81,12 +81,30 @@ This is a security requirement: when the app returns from background, Login shou
   - While in ligand list or 3D view, press Home and return to the app.
   - Expected: app shows Login.
 
-- **System dialogs**
-  - Open a system flow and return back:
-    - Share sheet (screenshot share)
-    - Share sheet (video share)
-    - MediaProjection permission dialog (video recording) and cancel
-  - Expected: app may be treated as having returned from background and can redirect to Login (strict security mode).
+- **System flows that briefly leave the activity (share / video)**
+  - After dismissing the system **screenshot share** sheet, or after **video share** / **MediaProjection** (including if you cancel the permission), you should **not** be sent to Login immediately: the app suppresses the “returned from background → show Login” rule for a short window so these flows complete normally.
+  - Expected: you stay in the 3D view (or return to it) without a surprise Login screen right after share/recording.
+  - **Cancel MediaProjection** (deny or back out): no crash; remain in 3D; Login should not flash in due to this alone.
+
+- **Plain background (still mandatory)**
+  - Press **Home** from ligand list or 3D view, wait a few seconds, reopen the app from Recents.
+  - Expected: Login is shown again.
+
+---
+
+### 3.1) Responsive UI — tablet / orientation (subject: phones & tablets)
+
+Run at least once on a **tablet AVD** (Device Manager → Create device → **Tablet**) and/or resize the emulator window if supported.
+
+- **Layout**
+  - Open ligand list, 3D view, Compare (two favorites), Settings.
+  - Expected: no clipped controls; readable text; Compare shows two panels side-by-side on wide screens.
+
+- **Rotation**
+  - Rotate portrait ↔ landscape on list and 3D view.
+  - Expected: no crash; 3D scene and overlays remain usable.
+
+See also general emulator notes in [Emulator setup](EMULATOR_SETUP.md).
 
 ---
 
@@ -231,7 +249,7 @@ Best verified on a real device (emulators can be flaky).
 
 - **Cancel permission**
   - Start recording and cancel the MediaProjection prompt.
-  - Expected: no crash; you remain in the 3D view (no forced login).
+  - Expected: no crash; you remain in the 3D view (no forced login; see section 3).
 
 ---
 
@@ -265,6 +283,10 @@ Best verified on a real device (emulators can be flaky).
 - **Onboarding**
   - Clear app storage and relaunch.
   - Expected: onboarding appears once; after completing, it should not appear on next launch.
+
+- **Onboarding after new registration**
+  - Clear storage (or use a new username), open **Register**, create a new account.
+  - Expected: onboarding is shown for the new user (not skipped only because you used Register).
 
 - **Theme**
   - Settings → switch theme modes (System/Light/Dark).
@@ -304,6 +326,10 @@ These checks should be done on a **real device**.
 - **Overlay stability**
   - With labels/measurement enabled in Ball mode, rotate/zoom.
   - Expected: overlays remain stable (no freezing; correct positioning).
+
+- **Large / heavy ligands (memory + LOD)**
+  - Open at least one **large** ligand (e.g. from [LARGE_MOLECULE_MEMORY_TESTING](LARGE_MOLECULE_MEMORY_TESTING.md): **CDL**, **15P**, or another ~200+ atom case).
+  - Expected: a clear user-facing warning and/or automatic scene simplification; app should not hard-crash; interaction remains possible (may be slower).
 
 ---
 
