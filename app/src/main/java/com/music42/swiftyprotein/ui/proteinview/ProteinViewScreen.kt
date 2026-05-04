@@ -8,9 +8,11 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.ClipData
+import android.content.res.Configuration
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageFormat
+import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
@@ -27,17 +29,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -83,8 +82,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
@@ -108,6 +110,7 @@ import kotlin.math.hypot
 import java.io.File
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.music42.swiftyprotein.ui.scaffoldSymmetricContentPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,7 +123,10 @@ fun ProteinViewScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val layoutDirection = LocalLayoutDirection.current
     val accentGreen = Color(0xFF4CAF50)
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val sceneTint = if (MaterialTheme.colorScheme.background.red < 0.4f) {
         Color(0xFF151A20)
     } else {
@@ -259,8 +265,7 @@ fun ProteinViewScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .scaffoldSymmetricContentPadding(innerPadding, layoutDirection)
         ) {
             when {
                 uiState.isLoading -> {
@@ -348,6 +353,7 @@ fun ProteinViewScreen(
                             measurementBonds = uiState.measurementBonds,
                             onMeasurementBondTapped = viewModel::onBondTappedForMeasurement,
                             onClearMeasurement = viewModel::clearMeasurement,
+                            onExitMeasurementMode = { viewModel.setMeasurementMode(false) },
                             autoRotate = isRecording,
                             sceneBackground = sceneTint,
                             onSceneViewForScreenshot = { v -> sceneViewForScreenshot[0] = v },
@@ -357,242 +363,495 @@ fun ProteinViewScreen(
                                 .clip(RoundedCornerShape(24.dp))
                         )
 
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(end = 8.dp, top = 8.dp, bottom = bottomBarHeight + 8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        androidx.compose.ui.window.Popup(
+                            alignment = Alignment.TopEnd,
+                            properties = androidx.compose.ui.window.PopupProperties(focusable = false)
                         ) {
-                            Card(
-                                modifier = Modifier.size(42.dp),
-                                shape = CircleShape,
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (isRecording)
-                                        MaterialTheme.colorScheme.errorContainer
-                                    else
-                                        MaterialTheme.colorScheme.surface
-                                ),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                            ) {
-                                IconButton(
-                                    onClick = {
-                                        if (isRecording) return@IconButton
-                                        val activity = context as? Activity ?: return@IconButton
-                                        (activity as? com.music42.swiftyprotein.MainActivity)?.suppressLoginFor()
+                            if (isLandscape) {
+                                Column(
+                                    modifier = Modifier.padding(end = 8.dp, top = 8.dp),
+                                    horizontalAlignment = Alignment.End
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Card(
+                                            modifier = Modifier.size(42.dp),
+                                            shape = CircleShape,
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = if (isRecording)
+                                                    MaterialTheme.colorScheme.errorContainer
+                                                else
+                                                    MaterialTheme.colorScheme.surface
+                                            ),
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                        ) {
+                                            IconButton(
+                                                onClick = {
+                                                    if (isRecording) return@IconButton
+                                                    val activity = context as? Activity ?: return@IconButton
+                                                    (activity as? com.music42.swiftyprotein.MainActivity)?.suppressLoginFor()
 
-                                        if (android.os.Build.VERSION.SDK_INT >= 33) {
-                                            val ok = ContextCompat.checkSelfPermission(
-                                                activity,
-                                                android.Manifest.permission.POST_NOTIFICATIONS
-                                            ) == PackageManager.PERMISSION_GRANTED
-                                            if (!ok) {
-                                                postNotificationsLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                                                return@IconButton
+                                                    if (android.os.Build.VERSION.SDK_INT >= 33) {
+                                                        val ok = ContextCompat.checkSelfPermission(
+                                                            activity,
+                                                            android.Manifest.permission.POST_NOTIFICATIONS
+                                                        ) == PackageManager.PERMISSION_GRANTED
+                                                        if (!ok) {
+                                                            postNotificationsLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                                                            return@IconButton
+                                                        }
+                                                    }
+                                                    runCatching {
+                                                        ContextCompat.startForegroundService(
+                                                            activity,
+                                                            Intent(activity, MediaProjectionForegroundService::class.java)
+                                                        )
+                                                    }.onFailure {
+                                                        recordErrorMessage =
+                                                            it.localizedMessage ?: "Failed to start recording service."
+                                                        return@IconButton
+                                                    }
+                                                    val mgr = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+                                                    projectionLauncher.launch(mgr.createScreenCaptureIntent())
+                                                },
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Videocam,
+                                                    contentDescription = "Record video",
+                                                    tint = if (isRecording)
+                                                        MaterialTheme.colorScheme.onErrorContainer
+                                                    else
+                                                        MaterialTheme.colorScheme.primary
+                                                )
                                             }
                                         }
-                                        runCatching {
-                                            ContextCompat.startForegroundService(
-                                                activity,
-                                                Intent(activity, MediaProjectionForegroundService::class.java)
+                                        Card(
+                                            modifier = Modifier.size(42.dp),
+                                            shape = CircleShape,
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = if (uiState.measurementMode)
+                                                    MaterialTheme.colorScheme.primaryContainer
+                                                else
+                                                    MaterialTheme.colorScheme.surface
+                                            ),
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                        ) {
+                                            IconButton(
+                                                onClick = {
+                                                    if (uiState.visualizationMode != VisualizationMode.BALL_AND_STICK) {
+                                                        showBallsModeHint = true
+                                                        return@IconButton
+                                                    }
+                                                    viewModel.setMeasurementMode(!uiState.measurementMode)
+                                                },
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Straighten,
+                                                    contentDescription = "Toggle measurement mode",
+                                                    tint = if (uiState.measurementMode)
+                                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                                    else
+                                                        MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                        Card(
+                                            modifier = Modifier.size(42.dp),
+                                            shape = CircleShape,
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = if (uiState.showAtomLabels)
+                                                    MaterialTheme.colorScheme.primaryContainer
+                                                else
+                                                    MaterialTheme.colorScheme.surface
+                                            ),
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                        ) {
+                                            IconButton(
+                                                onClick = {
+                                                    if (uiState.visualizationMode != VisualizationMode.BALL_AND_STICK) {
+                                                        showBallsModeHint = true
+                                                        return@IconButton
+                                                    }
+                                                    viewModel.setShowAtomLabels(!uiState.showAtomLabels)
+                                                },
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Label,
+                                                    contentDescription = "Toggle atom labels",
+                                                    tint = if (uiState.showAtomLabels)
+                                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                                    else
+                                                        MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Card(
+                                            modifier = Modifier.size(42.dp),
+                                            shape = CircleShape,
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = if (uiState.showHydrogens)
+                                                    MaterialTheme.colorScheme.primaryContainer
+                                                else
+                                                    MaterialTheme.colorScheme.surface
+                                            ),
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                        ) {
+                                            IconButton(
+                                                onClick = { viewModel.setShowHydrogens(!uiState.showHydrogens) },
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+                                                Text(
+                                                    text = "H",
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = if (uiState.showHydrogens)
+                                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                                    else
+                                                        MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                        Card(
+                                            modifier = Modifier.size(42.dp),
+                                            shape = CircleShape,
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = MaterialTheme.colorScheme.surface
+                                            ),
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                        ) {
+                                            IconButton(
+                                                onClick = { showShareFormatDialog = true },
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Share,
+                                                    contentDescription = "Share",
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(end = 8.dp, top = 8.dp, bottom = bottomBarHeight + 8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = if (isRecording)
+                                                MaterialTheme.colorScheme.errorContainer
+                                            else
+                                                MaterialTheme.colorScheme.surface
+                                        ),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                    ) {
+                                        IconButton(
+                                            onClick = {
+                                                if (isRecording) return@IconButton
+                                                val activity = context as? Activity ?: return@IconButton
+                                                (activity as? com.music42.swiftyprotein.MainActivity)?.suppressLoginFor()
+
+                                                if (android.os.Build.VERSION.SDK_INT >= 33) {
+                                                    val ok = ContextCompat.checkSelfPermission(
+                                                        activity,
+                                                        android.Manifest.permission.POST_NOTIFICATIONS
+                                                    ) == PackageManager.PERMISSION_GRANTED
+                                                    if (!ok) {
+                                                        postNotificationsLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                                                        return@IconButton
+                                                    }
+                                                }
+                                                runCatching {
+                                                    ContextCompat.startForegroundService(
+                                                        activity,
+                                                        Intent(activity, MediaProjectionForegroundService::class.java)
+                                                    )
+                                                }.onFailure {
+                                                    recordErrorMessage =
+                                                        it.localizedMessage ?: "Failed to start recording service."
+                                                    return@IconButton
+                                                }
+                                                val mgr = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+                                                projectionLauncher.launch(mgr.createScreenCaptureIntent())
+                                            },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Videocam,
+                                                contentDescription = "Record video",
+                                                tint = if (isRecording)
+                                                    MaterialTheme.colorScheme.onErrorContainer
+                                                else
+                                                    MaterialTheme.colorScheme.primary
                                             )
-                                        }.onFailure {
-                                            recordErrorMessage = it.localizedMessage ?: "Failed to start recording service."
-                                            return@IconButton
                                         }
-                                        val mgr = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-                                        projectionLauncher.launch(mgr.createScreenCaptureIntent())
-                                    },
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Icon(
-                                        Icons.Default.Videocam,
-                                        contentDescription = "Record video",
-                                        tint = if (isRecording)
-                                            MaterialTheme.colorScheme.onErrorContainer
-                                        else
-                                            MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Card(
-                                modifier = Modifier.size(42.dp),
-                                shape = CircleShape,
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (uiState.measurementMode)
-                                        MaterialTheme.colorScheme.primaryContainer
-                                    else
-                                        MaterialTheme.colorScheme.surface
-                                ),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                            ) {
-                                IconButton(
-                                    onClick = {
-                                        if (uiState.visualizationMode != VisualizationMode.BALL_AND_STICK) {
-                                            showBallsModeHint = true
-                                            return@IconButton
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = if (uiState.measurementMode)
+                                                MaterialTheme.colorScheme.primaryContainer
+                                            else
+                                                MaterialTheme.colorScheme.surface
+                                        ),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                    ) {
+                                        IconButton(
+                                            onClick = {
+                                                if (uiState.visualizationMode != VisualizationMode.BALL_AND_STICK) {
+                                                    showBallsModeHint = true
+                                                    return@IconButton
+                                                }
+                                                viewModel.setMeasurementMode(!uiState.measurementMode)
+                                            },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Straighten,
+                                                contentDescription = "Toggle measurement mode",
+                                                tint = if (uiState.measurementMode)
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                else
+                                                    MaterialTheme.colorScheme.primary
+                                            )
                                         }
-                                        viewModel.setMeasurementMode(!uiState.measurementMode)
-                                    },
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Icon(
-                                        Icons.Default.Straighten,
-                                        contentDescription = "Toggle measurement mode",
-                                        tint = if (uiState.measurementMode)
-                                            MaterialTheme.colorScheme.onPrimaryContainer
-                                        else
-                                            MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Card(
-                                modifier = Modifier.size(42.dp),
-                                shape = CircleShape,
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (uiState.showAtomLabels)
-                                        MaterialTheme.colorScheme.primaryContainer
-                                    else
-                                        MaterialTheme.colorScheme.surface
-                                ),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                            ) {
-                                IconButton(
-                                    onClick = {
-                                        if (uiState.visualizationMode != VisualizationMode.BALL_AND_STICK) {
-                                            showBallsModeHint = true
-                                            return@IconButton
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = if (uiState.showAtomLabels)
+                                                MaterialTheme.colorScheme.primaryContainer
+                                            else
+                                                MaterialTheme.colorScheme.surface
+                                        ),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                    ) {
+                                        IconButton(
+                                            onClick = {
+                                                if (uiState.visualizationMode != VisualizationMode.BALL_AND_STICK) {
+                                                    showBallsModeHint = true
+                                                    return@IconButton
+                                                }
+                                                viewModel.setShowAtomLabels(!uiState.showAtomLabels)
+                                            },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Label,
+                                                contentDescription = "Toggle atom labels",
+                                                tint = if (uiState.showAtomLabels)
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                else
+                                                    MaterialTheme.colorScheme.primary
+                                            )
                                         }
-                                        viewModel.setShowAtomLabels(!uiState.showAtomLabels)
-                                    },
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Icon(
-                                        Icons.Default.Label,
-                                        contentDescription = "Toggle atom labels",
-                                        tint = if (uiState.showAtomLabels)
-                                            MaterialTheme.colorScheme.onPrimaryContainer
-                                        else
-                                            MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Card(
-                                modifier = Modifier.size(42.dp),
-                                shape = CircleShape,
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (uiState.showHydrogens)
-                                        MaterialTheme.colorScheme.primaryContainer
-                                    else
-                                        MaterialTheme.colorScheme.surface
-                                ),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                            ) {
-                                IconButton(
-                                    onClick = { viewModel.setShowHydrogens(!uiState.showHydrogens) },
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Text(
-                                        text = "H",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (uiState.showHydrogens)
-                                            MaterialTheme.colorScheme.onPrimaryContainer
-                                        else
-                                            MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Card(
-                                modifier = Modifier.size(42.dp),
-                                shape = CircleShape,
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                ),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                            ) {
-                                IconButton(
-                                    onClick = { showShareFormatDialog = true },
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Icon(
-                                        Icons.Default.Share,
-                                        contentDescription = "Share",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = if (uiState.showHydrogens)
+                                                MaterialTheme.colorScheme.primaryContainer
+                                            else
+                                                MaterialTheme.colorScheme.surface
+                                        ),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                    ) {
+                                        IconButton(
+                                            onClick = { viewModel.setShowHydrogens(!uiState.showHydrogens) },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Text(
+                                                text = "H",
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (uiState.showHydrogens)
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                else
+                                                    MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surface
+                                        ),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                    ) {
+                                        IconButton(
+                                            onClick = { showShareFormatDialog = true },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Share,
+                                                contentDescription = "Share",
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
 
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(start = 8.dp, top = 8.dp, bottom = bottomBarHeight + 8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        androidx.compose.ui.window.Popup(
+                            alignment = Alignment.TopStart,
+                            properties = androidx.compose.ui.window.PopupProperties(focusable = false)
                         ) {
-                                Card(
-                                    modifier = Modifier.size(42.dp),
-                                    shape = CircleShape,
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
-                                    )
+                            if (isLandscape) {
+                                Row(
+                                    modifier = Modifier.padding(start = 8.dp, top = 8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    IconButton(
-                                        onClick = { zoomFactor = (zoomFactor * 1.2f).coerceIn(0.3f, 5.0f) },
-                                        modifier = Modifier.fillMaxSize()
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Add,
-                                            contentDescription = "Zoom in",
-                                            tint = MaterialTheme.colorScheme.onPrimary
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
                                         )
+                                    ) {
+                                        IconButton(
+                                            onClick = { zoomFactor = (zoomFactor * 1.2f).coerceIn(0.3f, 5.0f) },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Add,
+                                                contentDescription = "Zoom in",
+                                                tint = MaterialTheme.colorScheme.onPrimary
+                                            )
+                                        }
+                                    }
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    ) {
+                                        IconButton(
+                                            onClick = { zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f) },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Remove,
+                                                contentDescription = "Zoom out",
+                                                tint = MaterialTheme.colorScheme.onPrimary
+                                            )
+                                        }
+                                    }
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    ) {
+                                        IconButton(
+                                            onClick = {
+                                                zoomFactor = 1f
+                                                resetTick++
+                                            },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Refresh,
+                                                contentDescription = "Reset view",
+                                                tint = MaterialTheme.colorScheme.onPrimary
+                                            )
+                                        }
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Card(
-                                    modifier = Modifier.size(42.dp),
-                                    shape = CircleShape,
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
-                                    )
+                            } else {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(start = 8.dp, top = 8.dp, bottom = bottomBarHeight + 8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    IconButton(
-                                        onClick = { zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f) },
-                                        modifier = Modifier.fillMaxSize()
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Remove,
-                                            contentDescription = "Zoom out",
-                                            tint = MaterialTheme.colorScheme.onPrimary
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
                                         )
+                                    ) {
+                                        IconButton(
+                                            onClick = { zoomFactor = (zoomFactor * 1.2f).coerceIn(0.3f, 5.0f) },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Add,
+                                                contentDescription = "Zoom in",
+                                                tint = MaterialTheme.colorScheme.onPrimary
+                                            )
+                                        }
                                     }
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Card(
-                                    modifier = Modifier.size(42.dp),
-                                    shape = CircleShape,
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
-                                    )
-                                ) {
-                                    IconButton(
-                                        onClick = {
-                                            zoomFactor = 1f
-                                            resetTick++
-                                        },
-                                        modifier = Modifier.fillMaxSize()
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.Refresh,
-                                            contentDescription = "Reset view",
-                                            tint = MaterialTheme.colorScheme.onPrimary
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
                                         )
+                                    ) {
+                                        IconButton(
+                                            onClick = { zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f) },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Remove,
+                                                contentDescription = "Zoom out",
+                                                tint = MaterialTheme.colorScheme.onPrimary
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Card(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    ) {
+                                        IconButton(
+                                            onClick = {
+                                                zoomFactor = 1f
+                                                resetTick++
+                                            },
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Refresh,
+                                                contentDescription = "Reset view",
+                                                tint = MaterialTheme.colorScheme.onPrimary
+                                            )
+                                        }
                                     }
                                 }
                             }
+                        }
 
                         androidx.compose.ui.window.Popup(alignment = Alignment.TopCenter) {
                             Column(
@@ -920,6 +1179,7 @@ private fun MoleculeViewer(
     measurementBonds: List<Bond>,
     onMeasurementBondTapped: (Bond) -> Unit,
     onClearMeasurement: () -> Unit,
+    onExitMeasurementMode: () -> Unit,
     autoRotate: Boolean,
     sceneBackground: Color,
     onSceneViewForScreenshot: (android.view.View?) -> Unit,
@@ -1336,6 +1596,9 @@ private fun MoleculeViewer(
             onViewCreated = {
                 sceneViewRef[0] = this
                 onSceneViewForScreenshot(this)
+                setZOrderOnTop(false)
+                setZOrderMediaOverlay(false)
+                runCatching { holder.setFormat(PixelFormat.TRANSLUCENT) }
                 runCatching {
                     val loc = IntArray(2)
                     getLocationInWindow(loc)
@@ -1478,16 +1741,28 @@ private fun MoleculeViewer(
         }
 
         if (measurementMode) {
-            androidx.compose.ui.window.Popup(alignment = Alignment.BottomStart) {
-                MeasurementOverlay(
-                    ligand = ligand,
-                    selectedAtomIds = measurementAtomIds,
-                    selectedBonds = measurementBonds,
-                    onClear = onClearMeasurement,
-                    modifier = Modifier
+            androidx.compose.ui.window.Popup(
+                alignment = Alignment.BottomCenter,
+                properties = androidx.compose.ui.window.PopupProperties(
+                    focusable = false,
+                    usePlatformDefaultWidth = true,
+                ),
+            ) {
+                Box(
+                    Modifier
                         .fillMaxWidth()
-                        .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
-                )
+                        .padding(horizontal = 12.dp)
+                        .padding(bottom = 12.dp),
+                    contentAlignment = Alignment.BottomCenter,
+                ) {
+                    MeasurementOverlay(
+                        ligand = ligand,
+                        selectedAtomIds = measurementAtomIds,
+                        selectedBonds = measurementBonds,
+                        onClear = onClearMeasurement,
+                        onExitMeasurementMode = onExitMeasurementMode,
+                    )
+                }
             }
         }
 
@@ -1500,8 +1775,11 @@ private fun MeasurementOverlay(
     selectedAtomIds: List<String>,
     selectedBonds: List<Bond>,
     onClear: () -> Unit,
+    onExitMeasurementMode: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val maxCardDp = kotlin.math.min(kotlin.math.max(screenWidthDp - 24, 120), 304)
     val atoms = selectedAtomIds.mapNotNull { id -> ligand.atoms.firstOrNull { it.id == id } }
     val details = when {
         selectedBonds.size >= 2 -> {
@@ -1552,7 +1830,7 @@ private fun MeasurementOverlay(
     val detailText = details
 
     Card(
-        modifier = modifier,
+        modifier = modifier.widthIn(max = maxCardDp.dp),
         shape = RoundedCornerShape(999.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.88f)
@@ -1560,37 +1838,43 @@ private fun MeasurementOverlay(
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Row(
-            modifier = Modifier.padding(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Image(
                 painter = androidx.compose.ui.res.painterResource(com.music42.swiftyprotein.R.drawable.ic_launcher_foreground),
-                contentDescription = "Molecule icon",
-                modifier = Modifier.size(28.dp)
+                contentDescription = "Close measurement mode",
+                modifier = Modifier
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onExitMeasurementMode)
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = headerText,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFFFF9800)
                 )
                 Text(
                     text = detailText,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.inverseOnSurface
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             Text(
                 text = "Reset",
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.inverseOnSurface,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
                     .clickable(onClick = onClear)
-                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
             )
         }
     }
