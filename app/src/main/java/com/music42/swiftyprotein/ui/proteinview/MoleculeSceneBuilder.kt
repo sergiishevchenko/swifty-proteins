@@ -61,9 +61,10 @@ object MoleculeSceneBuilder {
         highlightElement: String?,
         centerOffset: Float3,
         showHydrogens: Boolean = false
-    ): Pair<Node, Map<MeshNode, Atom>> {
+    ): Triple<Node, Map<MeshNode, Atom>, Map<MeshNode, BondMeshInfo>> {
         val parentNode = Node(engine)
         val atomNodeMap = mutableMapOf<MeshNode, Atom>()
+        val bondNodeMap = mutableMapOf<MeshNode, BondMeshInfo>()
         val atomsForRender = if (showHydrogens) {
             ligand.atoms
         } else {
@@ -191,22 +192,30 @@ object MoleculeSceneBuilder {
                     )
                     val halfLen = length / 2f
 
-                    addHalfCylinder(
+                    val half1 = addHalfCylinder(
                         engine, materialLoader, parentNode,
                         Float3((p1.x + mid.x) / 2f, (p1.y + mid.y) / 2f, (p1.z + mid.z) / 2f),
                         halfLen, radius, color1, diff, materialCache
                     )
-                    addHalfCylinder(
+                    bondNodeMap[half1] = BondMeshInfo(bond = bond, baseColor = color1)
+
+                    val half2 = addHalfCylinder(
                         engine, materialLoader, parentNode,
                         Float3((mid.x + p2.x) / 2f, (mid.y + p2.y) / 2f, (mid.z + p2.z) / 2f),
                         halfLen, radius, color2, diff, materialCache
                     )
+                    bondNodeMap[half2] = BondMeshInfo(bond = bond, baseColor = color2)
                 }
             }
         }
 
-        return parentNode to atomNodeMap
+        return Triple(parentNode, atomNodeMap, bondNodeMap)
     }
+
+    data class BondMeshInfo(
+        val bond: com.music42.swiftyprotein.data.model.Bond,
+        val baseColor: Color
+    )
 
     private fun dim(color: Color, factor: Float): Color {
         val f = factor.coerceIn(0f, 1f)
@@ -263,7 +272,7 @@ object MoleculeSceneBuilder {
         color: androidx.compose.ui.graphics.Color,
         direction: Float3,
         materialCache: MutableMap<Color, com.google.android.filament.MaterialInstance>
-    ) {
+    ): MeshNode {
         val cylinder = Cylinder.Builder()
             .radius(radius)
             .height(height)
@@ -293,6 +302,7 @@ object MoleculeSceneBuilder {
         }
 
         parent.addChildNode(meshNode)
+        return meshNode
     }
 
     private fun cylinderQuaternion(direction: Float3): Quaternion {

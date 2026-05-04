@@ -274,7 +274,7 @@ private fun SimpleMoleculeViewer(
     val cy = atoms.map { it.y }.average().toFloat()
     val cz = atoms.map { it.z }.average().toFloat()
     val centerOffset = remember(ligand.id) { dev.romainguy.kotlin.math.Float3(cx, cy, cz) }
-    val (parentNode, _) = remember(ligand.id) {
+    val (parentNode, _, _) = remember(ligand.id) {
         MoleculeSceneBuilder.build(
             engine = engine,
             materialLoader = materialLoader,

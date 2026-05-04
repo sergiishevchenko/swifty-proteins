@@ -37,6 +37,7 @@ data class ProteinViewUiState(
     val showHydrogens: Boolean = false,
     val measurementMode: Boolean = false,
     val measurementAtomIds: List<String> = emptyList(),
+    val measurementBonds: List<Bond> = emptyList(),
     val loadingStage: String = "Loading",
     val loadingProgress: Float = 0f,
     val largeMoleculeWarning: Boolean = false
@@ -156,6 +157,7 @@ class ProteinViewViewModel @Inject constructor(
             it.copy(
                 measurementMode = enabled,
                 measurementAtomIds = if (enabled) it.measurementAtomIds else emptyList(),
+                measurementBonds = if (enabled) it.measurementBonds else emptyList(),
                 selectedAtom = if (enabled) null else it.selectedAtom,
                 selectedBond = if (enabled) null else it.selectedBond
             )
@@ -169,12 +171,30 @@ class ProteinViewViewModel @Inject constructor(
         val next = state.measurementAtomIds.toMutableList()
         if (next.isNotEmpty() && next.last() == atom.id) return
         next.add(atom.id)
-        while (next.size > 3) next.removeAt(0)
+        // Measure mode: atoms are used for distance only (2 atoms).
+        while (next.size > 2) next.removeAt(0)
         _uiState.update { it.copy(measurementAtomIds = next) }
     }
 
+    fun onBondTappedForMeasurement(bond: Bond) {
+        val state = _uiState.value
+        if (!state.measurementMode) return
+
+        val next = state.measurementBonds.toMutableList()
+        if (next.isNotEmpty()) {
+            val last = next.last()
+            val same =
+                (last.atomId1 == bond.atomId1 && last.atomId2 == bond.atomId2) ||
+                    (last.atomId1 == bond.atomId2 && last.atomId2 == bond.atomId1)
+            if (same) return
+        }
+        next.add(bond)
+        while (next.size > 2) next.removeAt(0)
+        _uiState.update { it.copy(measurementBonds = next) }
+    }
+
     fun clearMeasurement() {
-        _uiState.update { it.copy(measurementAtomIds = emptyList()) }
+        _uiState.update { it.copy(measurementAtomIds = emptyList(), measurementBonds = emptyList()) }
     }
 
     fun dismissLargeMoleculeWarning() {
