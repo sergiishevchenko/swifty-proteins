@@ -204,14 +204,7 @@ fun ProteinViewScreen(
     }
 
     fun requestScreenshot(format: ShareFormat) {
-        val namePart = uiState.ligand?.name?.takeIf { it.isNotBlank() } ?: "Unknown ligand"
-        val atomsPart = uiState.ligand?.atoms?.size?.let { "Atoms: $it" } ?: "Atoms: ?"
-        val formulaPart = uiState.ligand?.formula?.takeIf { it.isNotBlank() }?.let { "Formula: $it" } ?: "Formula: ?"
-        val shareText = buildString {
-            append("Ligand $safeLigandId — $namePart\n")
-            append("$atomsPart · $formulaPart\n")
-            append("https://www.rcsb.org/ligand/$safeLigandId")
-        }
+        val shareText = buildLigandShareText(safeLigandId, uiState.ligand)
         shareModelScreenshotPixelCopyFallback(
             context = context,
             ligandId = safeLigandId,
@@ -783,6 +776,17 @@ fun ProteinViewScreen(
 
 }
 
+private fun buildLigandShareText(ligandId: String, ligand: Ligand?): String {
+    val namePart = ligand?.name?.takeIf { it.isNotBlank() } ?: "Unknown ligand"
+    val atomsPart = ligand?.atoms?.size?.let { "Atoms: $it" } ?: "Atoms: ?"
+    val formulaPart = ligand?.formula?.takeIf { it.isNotBlank() }?.let { "Formula: $it" } ?: "Formula: ?"
+    return buildString {
+        append("Ligand $ligandId — $namePart\n")
+        append("$atomsPart · $formulaPart\n")
+        append("https://www.rcsb.org/ligand/$ligandId")
+    }
+}
+
 private fun shareImageFile(
     context: Context,
     file: File,
@@ -797,7 +801,13 @@ private fun shareImageFile(
         putExtra(Intent.EXTRA_STREAM, uri)
         putExtra(Intent.EXTRA_TEXT, shareText)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        clipData = ClipData.newUri(context.contentResolver, "shared_${ligandId}", uri)
+        val clip = ClipData.newUri(
+            context.contentResolver,
+            "ligand_${ligandId}",
+            uri
+        )
+        clip.addItem(ClipData.Item(shareText))
+        clipData = clip
     }
     val resInfoList = context.packageManager.queryIntentActivities(intent, 0)
     for (resolveInfo in resInfoList) {
@@ -1625,27 +1635,26 @@ private fun shareVideo(
     context: Context,
     file: File,
     ligandId: String,
-    ligand: com.music42.swiftyprotein.data.model.Ligand?
+    ligand: Ligand?
 ) {
     val uri = FileProvider.getUriForFile(
         context,
         "${context.packageName}.fileprovider",
         file
     )
-    val namePart = ligand?.name?.takeIf { it.isNotBlank() } ?: "Unknown ligand"
-    val atomsPart = ligand?.atoms?.size?.let { "Atoms: $it" } ?: "Atoms: ?"
-    val formulaPart = ligand?.formula?.takeIf { it.isNotBlank() }?.let { "Formula: $it" } ?: "Formula: ?"
-    val shareText = buildString {
-        append("Ligand $ligandId — $namePart\n")
-        append("$atomsPart · $formulaPart\n")
-        append("https://www.rcsb.org/ligand/$ligandId")
-    }
+    val shareText = buildLigandShareText(ligandId, ligand)
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "video/mp4"
         putExtra(Intent.EXTRA_STREAM, uri)
         putExtra(Intent.EXTRA_TEXT, shareText)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        clipData = ClipData.newUri(context.contentResolver, "video_${ligandId}", uri)
+        val clip = ClipData.newUri(
+            context.contentResolver,
+            "ligand_${ligandId}",
+            uri
+        )
+        clip.addItem(ClipData.Item(shareText))
+        clipData = clip
     }
     val resInfoList = context.packageManager.queryIntentActivities(intent, 0)
     for (resolveInfo in resInfoList) {
@@ -1658,7 +1667,7 @@ private fun shareVideo(
         }
     }
     (context as? MainActivity)?.suppressLoginFor()
-    context.startActivity(Intent.createChooser(intent, "Share Video"))
+    context.startActivity(Intent.createChooser(intent, "Share Ligand"))
 }
 
 private class ScreenRecorder(
