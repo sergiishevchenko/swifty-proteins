@@ -19,4 +19,3 @@ class FavoritesViewModel @Inject constructor(
             .map { list -> list.map { it.ligandId } }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 }
-

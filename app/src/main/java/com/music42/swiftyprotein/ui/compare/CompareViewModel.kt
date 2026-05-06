@@ -63,4 +63,3 @@ class CompareViewModel @Inject constructor(
         }
     }
 }
-

@@ -40,4 +40,3 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { settingsRepository.setShowHydrogensByDefault(show) }
     }
 }
-

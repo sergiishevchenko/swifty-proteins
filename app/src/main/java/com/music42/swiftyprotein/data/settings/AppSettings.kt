@@ -14,4 +14,3 @@ data class AppSettings(
     val onboardingCompleted: Boolean = false,
     val showHydrogensByDefault: Boolean = false
 )
-

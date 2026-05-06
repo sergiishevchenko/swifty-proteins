@@ -171,7 +171,6 @@ class ProteinViewViewModel @Inject constructor(
         val next = state.measurementAtomIds.toMutableList()
         if (next.isNotEmpty() && next.last() == atom.id) return
         next.add(atom.id)
-        // Measure mode: atoms are used for distance only (2 atoms).
         while (next.size > 2) next.removeAt(0)
         _uiState.update { it.copy(measurementAtomIds = next) }
     }

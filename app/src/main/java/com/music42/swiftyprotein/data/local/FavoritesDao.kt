@@ -24,4 +24,3 @@ interface FavoritesDao {
     @Query("SELECT EXISTS(SELECT 1 FROM favorite_ligands WHERE ligandId = :ligandId)")
     suspend fun isFavorite(ligandId: String): Boolean
 }
-

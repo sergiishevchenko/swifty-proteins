@@ -60,4 +60,3 @@ class SettingsRepository @Inject constructor(
         return runCatching { enumValueOf<T>(raw) }.getOrDefault(default)
     }
 }
-

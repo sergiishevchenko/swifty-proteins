@@ -21,4 +21,3 @@ class FavoritesRepository @Inject constructor(
         }
     }
 }
-
