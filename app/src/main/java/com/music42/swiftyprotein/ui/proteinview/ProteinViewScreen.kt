@@ -95,6 +95,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 import androidx.core.content.FileProvider
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -146,6 +147,14 @@ fun ProteinViewScreen(
     val coroutineScope = rememberCoroutineScope()
     val recorderHolder = remember { arrayOf<ScreenRecorder?>(null) }
     val sceneViewForScreenshot = remember { arrayOfNulls<android.view.View>(1) }
+    var overlayVisible by remember { mutableStateOf(true) }
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
+    val leaveScreen: () -> Unit = {
+        overlayVisible = false
+        mainHandler.post { onBack() }
+    }
+
+    BackHandler(enabled = overlayVisible, onBack = leaveScreen)
 
     LaunchedEffect(showBallsModeHint) {
         if (showBallsModeHint) {
@@ -239,7 +248,7 @@ fun ProteinViewScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { leaveScreen() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -361,12 +370,14 @@ fun ProteinViewScreen(
                             autoRotate = isRecording,
                             sceneBackground = sceneTint,
                             onSceneViewForScreenshot = { v -> sceneViewForScreenshot[0] = v },
+                            overlaysEnabled = overlayVisible,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(bottom = bottomBarHeight)
                                 .clip(RoundedCornerShape(24.dp))
                         )
 
+                        if (overlayVisible) {
                         androidx.compose.ui.window.Popup(
                             alignment = Alignment.TopEnd,
                             properties = androidx.compose.ui.window.PopupProperties(focusable = false)
@@ -982,6 +993,7 @@ fun ProteinViewScreen(
                                 }
                             }
                         }
+                        }
                     }
                 }
             }
@@ -1187,6 +1199,7 @@ private fun MoleculeViewer(
     autoRotate: Boolean,
     sceneBackground: Color,
     onSceneViewForScreenshot: (android.view.View?) -> Unit,
+    overlaysEnabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val engine = rememberEngine()
@@ -1210,8 +1223,8 @@ private fun MoleculeViewer(
         }
     }
 
-    DisposableEffect(showAtomLabels) {
-        if (!showAtomLabels) {
+    DisposableEffect(showAtomLabels, overlaysEnabled) {
+        if (!showAtomLabels || !overlaysEnabled) {
             return@DisposableEffect onDispose { }
         }
         val choreographer = Choreographer.getInstance()
@@ -1706,7 +1719,7 @@ private fun MoleculeViewer(
             }
         )
 
-        if (showAtomLabels) {
+        if (showAtomLabels && overlaysEnabled) {
             val onSurface = MaterialTheme.colorScheme.onSurface
             val density = androidx.compose.ui.platform.LocalDensity.current
             val popupW = sceneViewSizePx.width
@@ -1744,7 +1757,7 @@ private fun MoleculeViewer(
             }
         }
 
-        if (measurementMode) {
+        if (measurementMode && overlaysEnabled) {
             androidx.compose.ui.window.Popup(
                 alignment = Alignment.BottomCenter,
                 properties = androidx.compose.ui.window.PopupProperties(
