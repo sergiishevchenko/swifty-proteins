@@ -15,6 +15,7 @@ import android.graphics.ImageFormat
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
+import android.view.Choreographer
 import android.view.MotionEvent
 import android.view.PixelCopy
 import android.hardware.display.DisplayManager
@@ -67,6 +68,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -105,6 +107,8 @@ import io.github.sceneview.SceneView
 import io.github.sceneview.rememberCameraNode
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberMaterialLoader
+import io.github.sceneview.node.CameraNode
+import io.github.sceneview.node.MeshNode
 import dev.romainguy.kotlin.math.Float3
 import kotlin.math.hypot
 import java.io.File
@@ -1193,16 +1197,33 @@ private fun MoleculeViewer(
     var focusTarget by remember(ligand.id) { mutableStateOf<Float3?>(null) }
     var focusOffset by remember(ligand.id) { mutableStateOf(Float3(0f, 0f, 0f)) }
     var panOffset by remember(ligand.id) { mutableStateOf(Float3(0f, 0f, 0f)) }
-    var labelPositions by remember { mutableStateOf<Map<String, Offset>>(emptyMap()) }
-    var labelFrameCounter by remember { mutableIntStateOf(0) }
+    val labelOverlayViewRef = remember { arrayOfNulls<android.view.View>(1) }
+    val labelCameraRef = remember { arrayOfNulls<CameraNode>(1) }
+    val labelAtomNodeMapRef = remember { arrayOfNulls<Map<MeshNode, Atom>>(1) }
     val sceneViewWindowXY = remember { intArrayOf(0, 0) }
     var sceneViewSizePx by remember { mutableStateOf(IntSize.Zero) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
     LaunchedEffect(showAtomLabels) {
-        labelFrameCounter = 0
-        if (!showAtomLabels && labelPositions.isNotEmpty()) {
-            mainHandler.post { labelPositions = emptyMap() }
+        if (!showAtomLabels) {
+            labelOverlayViewRef[0] = null
+        }
+    }
+
+    DisposableEffect(showAtomLabels) {
+        if (!showAtomLabels) {
+            return@DisposableEffect onDispose { }
+        }
+        val choreographer = Choreographer.getInstance()
+        val frameCallback = object : Choreographer.FrameCallback {
+            override fun doFrame(frameTimeNanos: Long) {
+                labelOverlayViewRef[0]?.invalidate()
+                choreographer.postFrameCallback(this)
+            }
+        }
+        choreographer.postFrameCallback(frameCallback)
+        onDispose {
+            choreographer.removeFrameCallback(frameCallback)
         }
     }
 
@@ -1323,6 +1344,8 @@ private fun MoleculeViewer(
         near = 0.1f
         far = 1000.0f
     }
+    labelCameraRef[0] = cameraNode
+    labelAtomNodeMapRef[0] = atomNodeMap
 
     val atomsForCenter = ligand.atoms.filterNot {
         val e = it.element.uppercase().trim()
@@ -1680,30 +1703,10 @@ private fun MoleculeViewer(
                     -focusOffset.z + panOffset.z
                 )
 
-                if (showAtomLabels) {
-                    labelFrameCounter++
-                    if (labelFrameCounter == 1 || labelFrameCounter % 2 == 0) {
-                        val sv = sceneViewRef[0]
-                        if (sv != null && sv.width > 0 && sv.height > 0) {
-                            val entries = atomNodeMap.entries.toList()
-                            val map = LinkedHashMap<String, Offset>(entries.size)
-                            for ((node, atom) in entries) {
-                                val v = cameraNode.worldToView(node.worldPosition)
-                                val px = (v.x * sv.width.toFloat()).coerceIn(0f, sv.width.toFloat())
-                                val py = ((1f - v.y) * sv.height.toFloat()).coerceIn(0f, sv.height.toFloat())
-                                map[atom.id] = Offset(px, py)
-                            }
-                            mainHandler.post { labelPositions = map }
-                        }
-                    }
-                } else if (labelPositions.isNotEmpty()) {
-                    mainHandler.post { labelPositions = emptyMap() }
-                }
             }
         )
 
-        if (showAtomLabels && labelPositions.isNotEmpty()) {
-            val atomById = remember(ligand.id) { ligand.atoms.associateBy { it.id } }
+        if (showAtomLabels) {
             val onSurface = MaterialTheme.colorScheme.onSurface
             val density = androidx.compose.ui.platform.LocalDensity.current
             val popupW = sceneViewSizePx.width
@@ -1731,10 +1734,12 @@ private fun MoleculeViewer(
                     widthPx = popupW,
                     heightPx = popupH,
                     density = density,
-                    positions = labelPositions,
-                    atomById = atomById,
+                    sceneViewRef = sceneViewRef,
+                    cameraRef = labelCameraRef,
+                    atomNodeMapRef = labelAtomNodeMapRef,
                     paint = paint,
-                    textHalfH = textHalfH
+                    textHalfH = textHalfH,
+                    onOverlayView = { labelOverlayViewRef[0] = it }
                 )
             }
         }
@@ -2176,21 +2181,13 @@ private fun LabelOverlayPopup(
     widthPx: Int,
     heightPx: Int,
     density: androidx.compose.ui.unit.Density,
-    positions: Map<String, Offset>,
-    atomById: Map<String, com.music42.swiftyprotein.data.model.Atom>,
+    sceneViewRef: Array<SceneView?>,
+    cameraRef: Array<CameraNode?>,
+    atomNodeMapRef: Array<Map<MeshNode, Atom>?>,
     paint: android.graphics.Paint,
-    textHalfH: Float
+    textHalfH: Float,
+    onOverlayView: (android.view.View) -> Unit
 ) {
-    val overlayRef = remember { arrayOfNulls<android.view.View>(1) }
-    val posRef = remember { arrayOfNulls<Map<String, Offset>>(1) }
-    val atomRef = remember { arrayOfNulls<Map<String, com.music42.swiftyprotein.data.model.Atom>>(1) }
-    posRef[0] = positions
-    atomRef[0] = atomById
-
-    LaunchedEffect(positions) {
-        overlayRef[0]?.invalidate()
-    }
-
     androidx.compose.ui.window.Popup(
         alignment = Alignment.TopStart,
         properties = androidx.compose.ui.window.PopupProperties(
@@ -2211,13 +2208,19 @@ private fun LabelOverlayPopup(
                     override fun onTouchEvent(event: android.view.MotionEvent?) = false
                     override fun onDraw(c: android.graphics.Canvas) {
                         super.onDraw(c)
-                        val curPositions = posRef[0] ?: return
-                        val curAtoms = atomRef[0] ?: return
-                        for ((atomId, pos) in curPositions) {
-                            val atom = curAtoms[atomId] ?: continue
+                        val sv = sceneViewRef[0] ?: return
+                        val camera = cameraRef[0] ?: return
+                        val nodes = atomNodeMapRef[0] ?: return
+                        if (sv.width <= 0 || sv.height <= 0) return
+                        val w = sv.width.toFloat()
+                        val h = sv.height.toFloat()
+                        for ((node, atom) in nodes) {
+                            val v = camera.worldToView(node.worldPosition)
+                            val px = (v.x * w).coerceIn(0f, w)
+                            val py = ((1f - v.y) * h).coerceIn(0f, h)
                             val text = atom.element
-                            val w = paint.measureText(text)
-                            c.drawText(text, pos.x - w / 2f, pos.y + textHalfH, paint)
+                            val tw = paint.measureText(text)
+                            c.drawText(text, px - tw / 2f, py + textHalfH, paint)
                         }
                     }
                     override fun onAttachedToWindow() {
@@ -2240,9 +2243,8 @@ private fun LabelOverlayPopup(
                             r = r.parent
                         }
                     }
-                }.also { overlayRef[0] = it }
+                }.also { onOverlayView(it) }
             },
-            update = { it.invalidate() },
             modifier = sizeModifier
         )
     }
