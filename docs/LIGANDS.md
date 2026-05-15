@@ -2,8 +2,8 @@
 
 ## Data Source Used by the App
 
-- Current endpoint pattern: `https://files.rcsb.org/ligands/download/{ID}.cif`
-- Example: [HEM.cif (download)](https://files.rcsb.org/ligands/download/HEM.cif)
+- Current endpoint pattern: `https://files.rcsb.org/ligands/view/{ID}.cif`
+- Example: [HEM.cif (view)](https://files.rcsb.org/ligands/view/HEM.cif)
 
 `{ID}` here is a **ligand/chemical component ID** (CCD ID), for example `HEM`, `ATP`, `NAG`, or numeric-like IDs such as `001` from [`app/src/main/res/raw/ligands.txt`](../app/src/main/res/raw/ligands.txt).
 
@@ -31,9 +31,10 @@ because `{id}` is not a valid PDB entry ID.
 
 ### 1) Endpoint mismatch
 
-RCSB ligand endpoint is:
+RCSB ligand CIF endpoints (ligand ID domain) include:
 
-- `/ligands/download/{ID}.cif` (example: [HEM.cif](https://files.rcsb.org/ligands/download/HEM.cif))
+- `/ligands/view/{ID}.cif` — used by this app and the subject (example: [HEM.cif](https://files.rcsb.org/ligands/view/HEM.cif))
+- `/ligands/download/{ID}.cif` — alternate RCSB path for the same resource (example: [HEM.cif](https://files.rcsb.org/ligands/download/HEM.cif))
 
 RCSB legacy PDB endpoint is for entries:
 
@@ -132,4 +133,4 @@ This is a different data model and a different product scope than "list ligand I
 ## References
 
 - [RCSB File Download Services](https://www.rcsb.org/docs/programmatic-access/file-download-services)
-- RCSB ligands download pattern used in this app: `https://files.rcsb.org/ligands/download/{ID}.cif` — example [HEM.cif](https://files.rcsb.org/ligands/download/HEM.cif)
+- RCSB ligands view pattern used in this app: `https://files.rcsb.org/ligands/view/{ID}.cif` — example [HEM.cif](https://files.rcsb.org/ligands/view/HEM.cif)

@@ -4,15 +4,32 @@ This project is an Android (Kotlin) implementation of the **Swifty Proteins** as
 
 ## Documents
 
+### Features
+
 - [Authentication](AUTH.md)
 - [Navigation](NAVIGATION.md)
 - [Data layer](DATA_LAYER.md)
 - [CIF parser](CIF_PARSER.md)
+- [Ligands (CIF vs PDB)](LIGANDS.md)
 - [3D rendering](RENDERING_3D.md)
 - [Overlays & interaction](OVERLAYS_INTERACTION.md)
 - [Sharing & video](SHARING_AND_VIDEO.md)
 - [Favorites & compare](FAVORITES_AND_COMPARE.md)
 - [Settings & theme](SETTINGS_AND_THEME.md)
+
+### Storage & preferences
+
+- [Secure storage](SECURE_STORAGE.md)
+- [Preferences.readEnum](PREFERENCES_READ_ENUM.md)
+
+### Requirements & testing
+
+- [Requirements status](REQUIREMENTS_STATUS.md)
+- [Manual test plan](MANUAL_TEST_PLAN.md)
+- [Emulator setup](EMULATOR_SETUP.md)
+- [Xiaomi USB setup](XIAOMI_DEVICE_USB_SETUP.md)
+- [Performance & memory testing](PERFORMANCE_AND_MEMORY_TESTING.md)
+- [Large molecule testing](LARGE_MOLECULE_MEMORY_TESTING.md)
 
 ## High-level modules
 
@@ -24,7 +41,7 @@ This project is an Android (Kotlin) implementation of the **Swifty Proteins** as
 - **Overlays**: tooltips, labels overlay, measurement overlay, mode banners.
 - **Sharing**: screenshot (PixelCopy) and video recording (MediaProjection).
 - **Favorites + Compare**: Room-persisted favorites and a two-panel compare view.
-- **Settings**: theme and default visualization mode stored in DataStore.
+- **Settings**: theme, default visualization mode, hydrogens default, and onboarding flag in DataStore; last username in encrypted prefs ([`SECURE_STORAGE.md`](SECURE_STORAGE.md)).
 
 ## Main user flow
 

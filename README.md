@@ -80,7 +80,7 @@ Assets live in [`screenshots/`](screenshots/). Order below: onboarding → catal
   <img src="screenshots/ligand_001_measure_angle.png" alt="Angle measurement" width="300" style="max-width: 100%; height: auto;"/>
 </p>
 
-<p align="center"><em>Measurement mode; distance between two atoms (Å); angle through three atoms (°).</em></p>
+<p align="center"><em>Measurement mode; distance between two atoms (Å); angle via two bonds sharing one atom (°).</em></p>
 
 ### Export and large structures
 
@@ -141,7 +141,7 @@ Main user flow:
 
 ## Documentation
 
-- [Architecture overview](docs/ARCHITECTURE_OVERVIEW.md)
+Start with [Architecture overview](docs/ARCHITECTURE_OVERVIEW.md) — it links all feature, storage, and testing docs.
 
 ## Quick Start
 
@@ -181,42 +181,31 @@ app/src/main/java/com/music42/swiftyprotein/
 │   ├── local/
 │   │   ├── AppDatabase.kt
 │   │   ├── UserDao.kt
-│   │   └── entity/User.kt
-│   ├── model/
-│   │   ├── Atom.kt
-│   │   ├── Bond.kt
-│   │   └── Ligand.kt
-│   ├── parser/
-│   │   └── CifParser.kt
-│   ├── remote/
-│   │   └── RcsbApi.kt
-│   └── repository/
-│       ├── AuthRepository.kt
-│       └── LigandRepository.kt
+│   │   ├── FavoritesDao.kt
+│   │   └── entity/ (User, FavoriteLigand)
+│   ├── model/ (Atom, Bond, Ligand)
+│   ├── parser/CifParser.kt
+│   ├── remote/RcsbApi.kt
+│   ├── repository/ (Auth, Ligand, Favorites)
+│   ├── security/SecureStorage.kt
+│   └── settings/ (SettingsRepository, AppSettings)
 ├── ui/
-│   ├── navigation/
-│   │   ├── NavGraph.kt
-│   │   └── Screen.kt
+│   ├── AppRoot.kt
+│   ├── navigation/ (NavGraph, Screen)
+│   ├── session/SessionViewModel.kt
 │   ├── login/
-│   │   ├── LoginScreen.kt
-│   │   └── LoginViewModel.kt
+│   ├── onboarding/
 │   ├── proteinlist/
-│   │   ├── ProteinListScreen.kt
-│   │   └── ProteinListViewModel.kt
 │   ├── proteinview/
 │   │   ├── MoleculeSceneBuilder.kt
 │   │   ├── ProteinViewScreen.kt
-│   │   └── ProteinViewViewModel.kt
+│   │   ├── ProteinViewViewModel.kt
+│   │   └── MediaProjectionForegroundService.kt
 │   ├── favorites/
 │   ├── compare/
 │   ├── settings/
 │   └── theme/
-│       ├── Color.kt
-│       ├── Theme.kt
-│       └── Type.kt
-└── util/
-    ├── BiometricHelper.kt
-    └── CpkColors.kt
+└── util/ (BiometricHelper, CpkColors, VdwRadii)
 ```
 
 ## Data Flow
@@ -269,7 +258,7 @@ app/src/main/java/com/music42/swiftyprotein/
 - Dismiss tooltip by tapping elsewhere.
 - Zoom controls (`+` / `-`) and pointer scroll zoom.
 - Camera orbit/rotate interactions.
-- Measurement mode (Balls only): pick 2 atoms for distance (Å), 3 atoms for angle (°).
+- Measurement mode (Balls only): 2 atoms → distance (Å); 2 bonds (shared atom) → angle (°).
 - Atom labels (Balls only): overlay labels that track atoms while moving/zooming.
 - Large-molecule handling: adaptive sphere resolution (LOD) + warning + automatic downgrade for heavy scenes.
 

@@ -31,11 +31,11 @@ For consistent overlay rendering above the 3D surface, the app uses Compose `Pop
 
 ## Measurement mode (Balls only)
 
-- Toggle via the ruler icon.
-- Pick atoms:
-  - 2 atoms → distance (Å)
-  - 3 atoms → angle (°)
-- Shows a small bottom overlay with the current measurement text and a reset button.
+- Toggle via the **straighten** icon (`Icons.Default.Straighten`) in the top-right action row.
+- **Distance:** tap **2 atoms** → distance between them (Å). Only the last two atom picks are kept.
+- **Angle:** tap **2 bonds** that share one atom (common vertex) → angle at that atom (°). Atom and bond picks are mutually exclusive (selecting bonds clears atom picks and vice versa).
+- A pill **bottom overlay** (`MeasurementOverlay`) shows the current result, a **Reset** control (clears picks), and tapping the app icon on the left exits measurement mode.
+- A top banner **“MEASURE MODE”** appears while the tool is active.
 
 ## Labels overlay (Balls only)
 

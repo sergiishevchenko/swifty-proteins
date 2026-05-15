@@ -196,13 +196,14 @@ See also general emulator notes in [Emulator setup](EMULATOR_SETUP.md).
 
 Note: measurement/labels are intended only for Ball-and-stick mode.
 
-- **Enable measurement**
-  - Switch to Ball-and-stick mode.
-  - Enable measurement.
+- **Distance (atoms)**
+  - Switch to Ball-and-stick mode and enable measurement.
   - Tap 2 atoms.
-  - Expected: distance shown (Å).
-  - Tap 3 atoms.
-  - Expected: angle shown (°).
+  - Expected: bottom overlay shows distance in Å (e.g. `Distance A–B: x.xx Å`).
+
+- **Angle (bonds)**
+  - With measurement still on, tap **Reset**, then tap 2 bonds that share one atom.
+  - Expected: bottom overlay shows angle in ° (e.g. `Angle at V: x.x°`).
 
 - **Non-ball mode behavior**
   - Switch to a non-ball mode and try enabling measurement.

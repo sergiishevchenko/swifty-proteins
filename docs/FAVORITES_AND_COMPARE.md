@@ -33,8 +33,9 @@ Show two ligands side-by-side in a simplified viewer so the user can visually co
 ### Behavior
 
 - Both ligands are loaded via `LigandRepository`.
-- Each panel renders its own SceneView scene.
+- Each panel renders its own SceneView scene in **Ball & Stick** mode only (no mode switcher on this screen).
 - Controls:
   - orbit/rotation
   - pinch zoom
   - zoom +/- buttons per panel
+  - **Reset view** per panel (returns camera to initial framing)
