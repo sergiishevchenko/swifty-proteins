@@ -193,9 +193,9 @@ private fun OnboardingPageExtras() {
     }
     Spacer(modifier = Modifier.height(12.dp))
     OnboardingCard(title = "Measurement & Labels") {
-        Text("• In Balls mode, enable measurement to pick 2–3 atoms.")
-        Text("• 2 atoms shows distance (Å), 3 atoms shows the angle (°).")
-        Text("• Toggle atom labels to display element symbols in 3D.")
+        Text("• Balls mode only — use the ruler and labels icons in the toolbar.")
+        Text("• Measurement: tap 2 atoms for distance (Å), or 2 bonds sharing an atom for angle (°).")
+        Text("• Labels: show element symbols on atoms; they track as you rotate and zoom.")
     }
     Spacer(modifier = Modifier.height(12.dp))
     OnboardingCard(title = "Settings") {
