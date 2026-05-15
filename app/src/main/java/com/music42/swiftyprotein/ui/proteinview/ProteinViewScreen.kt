@@ -224,7 +224,7 @@ fun ProteinViewScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = sceneTint,
         topBar = {
             TopAppBar(
                 title = {
@@ -1596,8 +1596,7 @@ private fun MoleculeViewer(
             onViewCreated = {
                 sceneViewRef[0] = this
                 onSceneViewForScreenshot(this)
-                setZOrderOnTop(false)
-                setZOrderMediaOverlay(false)
+                setZOrderOnTop(true)
                 runCatching { holder.setFormat(PixelFormat.TRANSLUCENT) }
                 runCatching {
                     val loc = IntArray(2)
