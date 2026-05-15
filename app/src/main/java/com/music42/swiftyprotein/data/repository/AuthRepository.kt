@@ -40,7 +40,6 @@ class AuthRepository @Inject constructor(
                 )
             )
             secureStorage.setLastUsername(username)
-            secureStorage.setBiometricUsername(username)
             settingsRepository.setOnboardingCompleted(false)
             AuthResult.Success
         } catch (e: SQLiteConstraintException) {
@@ -72,24 +71,11 @@ class AuthRepository @Inject constructor(
         }
 
         secureStorage.setLastUsername(username)
-        secureStorage.setBiometricUsername(username)
         return AuthResult.Success
-    }
-
-    suspend fun hasUsers(): Boolean {
-        return userDao.getUserCount() > 0
     }
 
     fun getLastUsername(): String? {
         return secureStorage.getLastUsername()
-    }
-
-    fun getBiometricUsername(): String? {
-        return secureStorage.getBiometricUsername()
-    }
-
-    fun logout() {
-        secureStorage.clearAuthForLogout()
     }
 
     suspend fun userExists(username: String): Boolean {

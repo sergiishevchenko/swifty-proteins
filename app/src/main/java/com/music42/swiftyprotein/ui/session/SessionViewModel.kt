@@ -21,7 +21,6 @@ class SessionViewModel @Inject constructor(
     }
 
     fun logout() {
-        authRepository.logout()
         _username.update { null }
     }
 }

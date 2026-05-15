@@ -73,9 +73,4 @@ object CpkColors {
         }
         return colorMap[key] ?: DEFAULT
     }
-
-    fun getColorFloats(element: String): FloatArray {
-        val color = getColor(element)
-        return floatArrayOf(color.red, color.green, color.blue, 1.0f)
-    }
 }

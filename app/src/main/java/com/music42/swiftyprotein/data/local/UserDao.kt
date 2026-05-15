@@ -12,9 +12,6 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE username = :username LIMIT 1")
     suspend fun findByUsername(username: String): User?
 
-    @Query("SELECT COUNT(*) FROM users")
-    suspend fun getUserCount(): Int
-
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(user: User)
 
