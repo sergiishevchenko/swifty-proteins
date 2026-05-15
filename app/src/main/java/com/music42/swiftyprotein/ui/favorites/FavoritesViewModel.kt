@@ -9,13 +9,20 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
-    favoritesRepository: FavoritesRepository
+    private val favoritesRepository: FavoritesRepository
 ) : ViewModel() {
     val favoriteLigandIds: StateFlow<List<String>> =
         favoritesRepository.observeFavorites()
             .map { list -> list.map { it.ligandId } }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun onToggleFavorite(ligandId: String) {
+        viewModelScope.launch {
+            favoritesRepository.toggleFavorite(ligandId)
+        }
+    }
 }

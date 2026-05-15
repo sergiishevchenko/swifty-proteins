@@ -1,5 +1,6 @@
 package com.music42.swiftyprotein
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import androidx.activity.compose.setContent
@@ -24,6 +25,13 @@ class MainActivity : FragmentActivity() {
     fun suppressLoginFor(durationMs: Long = 10_000L) {
         val now = SystemClock.elapsedRealtime()
         suppressLoginUntilMs = maxOf(suppressLoginUntilMs, now + durationMs)
+    }
+
+    fun bringToForeground() {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        startActivity(intent)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

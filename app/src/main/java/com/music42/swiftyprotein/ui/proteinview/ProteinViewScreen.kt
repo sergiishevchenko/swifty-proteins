@@ -117,6 +117,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.music42.swiftyprotein.ui.scaffoldSymmetricContentPadding
 
+private const val SHARE_LOGIN_SUPPRESS_MS = 10_000L
+private const val VIDEO_SHARE_LOGIN_SUPPRESS_MS = 180_000L
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProteinViewScreen(
@@ -163,6 +166,19 @@ fun ProteinViewScreen(
         }
     }
 
+    val shareLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        val activity = context as? MainActivity ?: return@rememberLauncherForActivityResult
+        activity.suppressLoginFor(SHARE_LOGIN_SUPPRESS_MS)
+        activity.bringToForeground()
+    }
+
+    fun openShareChooser(intent: Intent, title: String, loginSuppressMs: Long) {
+        (context as? MainActivity)?.suppressLoginFor(loginSuppressMs)
+        shareLauncher.launch(Intent.createChooser(intent, title))
+    }
+
     val projectionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -205,7 +221,15 @@ fun ProteinViewScreen(
             recorderHolder[0] = null
             runCatching { activity.stopService(Intent(activity, MediaProjectionForegroundService::class.java)) }
             if (stoppedFile != null && stoppedFile.exists() && stoppedFile.length() > 0L) {
-                shareVideo(context, stoppedFile, safeLigandId, uiState.ligand)
+                shareVideo(
+                    context = context,
+                    file = stoppedFile,
+                    ligandId = safeLigandId,
+                    ligand = uiState.ligand,
+                    openChooser = { intent, title ->
+                        openShareChooser(intent, title, VIDEO_SHARE_LOGIN_SUPPRESS_MS)
+                    }
+                )
             } else {
                 recordErrorMessage = "Video recording failed (empty output). Try a real device."
             }
@@ -220,7 +244,7 @@ fun ProteinViewScreen(
             return@rememberLauncherForActivityResult
         }
         val activity = context as? Activity ?: return@rememberLauncherForActivityResult
-        (activity as? com.music42.swiftyprotein.MainActivity)?.suppressLoginFor()
+        (activity as? MainActivity)?.suppressLoginFor(VIDEO_SHARE_LOGIN_SUPPRESS_MS)
         val mgr = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         projectionLauncher.launch(mgr.createScreenCaptureIntent())
     }
@@ -232,7 +256,10 @@ fun ProteinViewScreen(
             ligandId = safeLigandId,
             format = format,
             shareText = shareText,
-            sceneViewFor3d = sceneViewForScreenshot[0]
+            sceneViewFor3d = sceneViewForScreenshot[0],
+            openChooser = { intent, title ->
+                openShareChooser(intent, title, SHARE_LOGIN_SUPPRESS_MS)
+            }
         )
     }
 
@@ -406,7 +433,7 @@ fun ProteinViewScreen(
                                                 onClick = {
                                                     if (isRecording) return@IconButton
                                                     val activity = context as? Activity ?: return@IconButton
-                                                    (activity as? com.music42.swiftyprotein.MainActivity)?.suppressLoginFor()
+                                                    (activity as? MainActivity)?.suppressLoginFor(VIDEO_SHARE_LOGIN_SUPPRESS_MS)
 
                                                     if (android.os.Build.VERSION.SDK_INT >= 33) {
                                                         val ok = ContextCompat.checkSelfPermission(
@@ -579,7 +606,7 @@ fun ProteinViewScreen(
                                             onClick = {
                                                 if (isRecording) return@IconButton
                                                 val activity = context as? Activity ?: return@IconButton
-                                                (activity as? com.music42.swiftyprotein.MainActivity)?.suppressLoginFor()
+                                                (activity as? MainActivity)?.suppressLoginFor(VIDEO_SHARE_LOGIN_SUPPRESS_MS)
 
                                                 if (android.os.Build.VERSION.SDK_INT >= 33) {
                                                     val ok = ContextCompat.checkSelfPermission(
@@ -1073,7 +1100,8 @@ private fun shareImageFile(
     format: ShareFormat,
     chooserTitle: String,
     shareText: String,
-    ligandId: String
+    ligandId: String,
+    openChooser: (Intent, String) -> Unit
 ) {
     val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     val intent = Intent(Intent.ACTION_SEND).apply {
@@ -1097,8 +1125,7 @@ private fun shareImageFile(
             )
         }
     }
-    (context as? MainActivity)?.suppressLoginFor()
-    context.startActivity(Intent.createChooser(intent, chooserTitle))
+    openChooser(intent, chooserTitle)
 }
 
 private fun shareModelScreenshotPixelCopyFallback(
@@ -1106,7 +1133,8 @@ private fun shareModelScreenshotPixelCopyFallback(
     ligandId: String,
     format: ShareFormat,
     shareText: String,
-    sceneViewFor3d: android.view.View?
+    sceneViewFor3d: android.view.View?,
+    openChooser: (Intent, String) -> Unit
 ) {
     val activity = context as? Activity ?: return
     val window = activity.window
@@ -1120,7 +1148,7 @@ private fun shareModelScreenshotPixelCopyFallback(
         val surfaceView = svRoot?.let { findSurfaceView(it) }
         if (surfaceView == null || surfaceView.width <= 0 || surfaceView.height <= 0) {
             val file = saveBitmapToCache(context, bitmap, ligandId, format)
-            shareImageFile(context, file, format, "Share Ligand", shareText, ligandId)
+            shareImageFile(context, file, format, "Share Ligand", shareText, ligandId, openChooser)
             return@request
         }
 
@@ -1136,7 +1164,7 @@ private fun shareModelScreenshotPixelCopyFallback(
                     canvas.drawBitmap(modelBitmap, loc[0].toFloat(), loc[1].toFloat(), null)
                 }
                 val file = saveBitmapToCache(context, bitmap, ligandId, format)
-                shareImageFile(context, file, format, "Share Ligand", shareText, ligandId)
+                shareImageFile(context, file, format, "Share Ligand", shareText, ligandId, openChooser)
             },
             Handler(Looper.getMainLooper())
         )
@@ -1964,7 +1992,8 @@ private fun shareVideo(
     context: Context,
     file: File,
     ligandId: String,
-    ligand: Ligand?
+    ligand: Ligand?,
+    openChooser: (Intent, String) -> Unit
 ) {
     val uri = FileProvider.getUriForFile(
         context,
@@ -1995,8 +2024,7 @@ private fun shareVideo(
             )
         }
     }
-    (context as? MainActivity)?.suppressLoginFor()
-    context.startActivity(Intent.createChooser(intent, "Share Ligand"))
+    openChooser(intent, "Share Ligand")
 }
 
 private class ScreenRecorder(

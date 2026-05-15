@@ -1,6 +1,9 @@
 package com.music42.swiftyprotein.ui.favorites
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -18,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -132,6 +137,11 @@ fun FavoritesScreen(
                             animationSpec = tween(durationMillis = 200),
                             label = "fav_compare_color"
                         )
+                        val starScale by animateFloatAsState(
+                            targetValue = 1.12f,
+                            animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                            label = "favorite_scale"
+                        )
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -165,6 +175,17 @@ fun FavoritesScreen(
                                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                                         )
                                     }
+                                }
+                                IconButton(onClick = { viewModel.onToggleFavorite(ligandId) }) {
+                                    Icon(
+                                        Icons.Default.Star,
+                                        contentDescription = "Remove from favorites",
+                                        tint = accentGreen,
+                                        modifier = Modifier.graphicsLayer {
+                                            scaleX = starScale
+                                            scaleY = starScale
+                                        }
+                                    )
                                 }
                                 IconButton(onClick = { onLigandSelected(ligandId) }) {
                                     Icon(
