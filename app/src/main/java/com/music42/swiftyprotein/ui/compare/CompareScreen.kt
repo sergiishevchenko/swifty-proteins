@@ -3,6 +3,7 @@ package com.music42.swiftyprotein.ui.compare
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,12 +40,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.music42.swiftyprotein.data.model.Atom
 import com.music42.swiftyprotein.data.model.Ligand
 import com.music42.swiftyprotein.ui.proteinview.VisualizationMode
 import com.music42.swiftyprotein.ui.proteinview.MoleculeSceneBuilder
@@ -162,18 +164,23 @@ private fun ComparePanel(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                 style = MaterialTheme.typography.titleMedium
             )
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(10.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(background)
             ) {
+                val density = LocalDensity.current
+                val viewportWidthPx = with(density) { maxWidth.roundToPx() }
+                val viewportHeightPx = with(density) { maxHeight.roundToPx() }
                 SimpleMoleculeViewer(
                     ligand = ligand,
                     zoomFactor = zoomFactor,
                     onZoomFactorChange = { zoomFactor = it },
                     resetTick = resetTick,
+                    viewportWidthPx = viewportWidthPx,
+                    viewportHeightPx = viewportHeightPx,
                     modifier = Modifier.fillMaxSize()
                 )
 
@@ -257,6 +264,8 @@ private fun SimpleMoleculeViewer(
     zoomFactor: Float,
     onZoomFactorChange: (Float) -> Unit,
     resetTick: Int,
+    viewportWidthPx: Int,
+    viewportHeightPx: Int,
     modifier: Modifier = Modifier
 ) {
     val engine = rememberEngine()
@@ -273,7 +282,6 @@ private fun SimpleMoleculeViewer(
     val cx = atoms.map { it.x }.average().toFloat()
     val cy = atoms.map { it.y }.average().toFloat()
     val cz = atoms.map { it.z }.average().toFloat()
-    val centerOffset = remember(ligand.id) { dev.romainguy.kotlin.math.Float3(cx, cy, cz) }
     val (parentNode, _, _) = remember(ligand.id) {
         MoleculeSceneBuilder.build(
             engine = engine,
@@ -281,7 +289,7 @@ private fun SimpleMoleculeViewer(
             ligand = ligand,
             mode = VisualizationMode.BALL_AND_STICK,
             highlightElement = null,
-            centerOffset = centerOffset,
+            centerOffset = dev.romainguy.kotlin.math.Float3(0f, 0f, 0f),
             showHydrogens = false
         )
     }
@@ -291,11 +299,12 @@ private fun SimpleMoleculeViewer(
         far = 1000.0f
     }
 
-    val boundingRadius = (atoms.maxOfOrNull { a ->
-        val dx = a.x - cx; val dy = a.y - cy; val dz = a.z - cz
-        kotlin.math.sqrt(dx * dx + dy * dy + dz * dz) + MoleculeSceneBuilder.BALL_RADIUS
-    } ?: 5f).coerceAtLeast(1f)
-    val baseDist = boundingRadius * 4.5f
+    val boundingRadius = compareBoundingRadius(ligand, atoms, cx, cy, cz)
+    val baseDist = compareFitBaseDistance(
+        boundingRadius = boundingRadius,
+        viewWidthPx = viewportWidthPx,
+        viewHeightPx = viewportHeightPx
+    )
     val dist = (baseDist / zoomFactor).coerceIn(baseDist * 0.2f, baseDist * 6f)
     val dirX = 0.43f; val dirY = 0.32f; val dirZ = 0.75f
     val dirLen = kotlin.math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
@@ -304,12 +313,12 @@ private fun SimpleMoleculeViewer(
         dirY / dirLen * dist,
         dirZ / dirLen * dist
     )
-    LaunchedEffect(ligand.id, resetTick) {
+    LaunchedEffect(ligand.id, resetTick, dist) {
         cameraNode.position = defaultCameraPos
         runCatching { cameraNode.lookAt(io.github.sceneview.math.Position(0f, 0f, 0f)) }
     }
 
-    val cameraManipulator = remember(ligand.id, resetTick) {
+    val cameraManipulator = remember(ligand.id, resetTick, dist) {
         SceneView.createDefaultCameraManipulator(
             orbitHomePosition = defaultCameraPos,
             targetPosition = io.github.sceneview.math.Position(0f, 0f, 0f)
@@ -337,6 +346,8 @@ private fun SimpleMoleculeViewer(
             }
         },
         onViewCreated = {
+            setZOrderOnTop(true)
+            runCatching { holder.setFormat(android.graphics.PixelFormat.TRANSLUCENT) }
             renderer.clearOptions = renderer.clearOptions.apply {
                 clear = true
                 clearColor = floatArrayOf(sceneTint.red, sceneTint.green, sceneTint.blue, 1f)
@@ -391,4 +402,49 @@ private fun SimpleMoleculeViewer(
             }
         }
     )
+}
+
+private fun compareBoundingRadius(
+    ligand: Ligand,
+    atoms: List<Atom>,
+    cx: Float,
+    cy: Float,
+    cz: Float
+): Float {
+    val ballR = MoleculeSceneBuilder.BALL_RADIUS
+    val atomIds = atoms.map { it.id }.toSet()
+    fun distFromCenter(x: Float, y: Float, z: Float): Float {
+        val dx = x - cx
+        val dy = y - cy
+        val dz = z - cz
+        return kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
+    }
+    val fromAtoms = atoms.maxOfOrNull { distFromCenter(it.x, it.y, it.z) + ballR } ?: 0f
+    val fromBonds = ligand.bonds.maxOfOrNull { bond ->
+        if (bond.atomId1 !in atomIds || bond.atomId2 !in atomIds) return@maxOfOrNull 0f
+        val a1 = atoms.first { it.id == bond.atomId1 }
+        val a2 = atoms.first { it.id == bond.atomId2 }
+        maxOf(
+            distFromCenter(a1.x, a1.y, a1.z),
+            distFromCenter(a2.x, a2.y, a2.z)
+        ) + ballR
+    } ?: 0f
+    return maxOf(fromAtoms, fromBonds, 1f)
+}
+
+private fun compareFitBaseDistance(
+    boundingRadius: Float,
+    viewWidthPx: Int,
+    viewHeightPx: Int
+): Float {
+    val padding = 1.35f
+    if (viewWidthPx <= 0 || viewHeightPx <= 0) {
+        return boundingRadius * 5.5f
+    }
+    val aspect = viewWidthPx.toFloat() / viewHeightPx.toFloat()
+    val halfFovY = kotlin.math.PI.toFloat() / 8f
+    val halfFovX = kotlin.math.atan(kotlin.math.tan(halfFovY) * aspect)
+    val distV = boundingRadius / kotlin.math.sin(halfFovY) * padding
+    val distH = boundingRadius / kotlin.math.sin(halfFovX) * padding
+    return maxOf(distV, distH)
 }
