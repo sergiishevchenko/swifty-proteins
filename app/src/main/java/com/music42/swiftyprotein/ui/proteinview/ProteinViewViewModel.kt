@@ -171,8 +171,13 @@ class ProteinViewViewModel @Inject constructor(
         val next = state.measurementAtomIds.toMutableList()
         if (next.isNotEmpty() && next.last() == atom.id) return
         next.add(atom.id)
-        while (next.size > 2) next.removeAt(0)
-        _uiState.update { it.copy(measurementAtomIds = next) }
+        while (next.size > 3) next.removeAt(0)
+        _uiState.update {
+            it.copy(
+                measurementAtomIds = next,
+                measurementBonds = emptyList()
+            )
+        }
     }
 
     fun onBondTappedForMeasurement(bond: Bond) {
@@ -189,7 +194,12 @@ class ProteinViewViewModel @Inject constructor(
         }
         next.add(bond)
         while (next.size > 2) next.removeAt(0)
-        _uiState.update { it.copy(measurementBonds = next) }
+        _uiState.update {
+            it.copy(
+                measurementBonds = next,
+                measurementAtomIds = emptyList()
+            )
+        }
     }
 
     fun clearMeasurement() {

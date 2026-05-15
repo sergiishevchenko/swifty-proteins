@@ -1253,10 +1253,16 @@ private fun MoleculeViewer(
     }
     LaunchedEffect(ligand.id, mode, atomNodeMap.size) {}
 
-    LaunchedEffect(selectedAtom?.id, measurementMode, measurementAtomIds) {
-        val measureAccent = Color(0xFFFF6A00) // vivid orange
+    LaunchedEffect(selectedAtom?.id, measurementMode, measurementAtomIds, measurementBonds) {
+        val measureAccent = Color(0xFFFF6A00)
             val measurementAtomIdSet: Set<String> = if (measurementMode) {
-                measurementAtomIds.takeLast(2).toSet()
+                if (measurementBonds.isNotEmpty()) {
+                    emptySet()
+                } else if (measurementAtomIds.size >= 3) {
+                    measurementAtomIds.takeLast(3).toSet()
+                } else {
+                    measurementAtomIds.takeLast(2).toSet()
+                }
             } else {
             emptySet()
         }
@@ -1438,6 +1444,22 @@ private fun MoleculeViewer(
 
     var autoRotateAngle by remember(ligand.id) { mutableFloatStateOf(0f) }
 
+    val zoomFactorRef = remember { floatArrayOf(zoomFactor) }
+    val onZoomCallbackRef = remember { arrayOf(onZoomFactorChange) }
+    zoomFactorRef[0] = zoomFactor
+    onZoomCallbackRef[0] = onZoomFactorChange
+
+    fun applyScrollZoom(scroll: Float) {
+        if (scroll == 0f) return
+        val zf = zoomFactorRef[0]
+        val next = if (scroll > 0f) {
+            (zf * 1.12f).coerceIn(0.3f, 5.0f)
+        } else {
+            (zf / 1.12f).coerceIn(0.3f, 5.0f)
+        }
+        onZoomCallbackRef[0](next)
+    }
+
     Box(
         modifier = modifier
     ) {
@@ -1472,12 +1494,7 @@ private fun MoleculeViewer(
                         val hScroll = event.getAxisValue(MotionEvent.AXIS_HSCROLL)
                         val scroll = if (wheel != 0f) wheel else genericScroll
                         if (scroll != 0f && kotlin.math.abs(scroll) >= kotlin.math.abs(hScroll)) {
-                            val next = if (scroll > 0f) {
-                                (zoomFactor * 1.12f).coerceIn(0.3f, 5.0f)
-                            } else {
-                                (zoomFactor / 1.12f).coerceIn(0.3f, 5.0f)
-                            }
-                            onZoomFactorChange(next)
+                            applyScrollZoom(scroll)
                             true
                         } else {
                             false
@@ -1546,14 +1563,13 @@ private fun MoleculeViewer(
                             val tapNormX = event.x / sv.width.toFloat()
                             val tapNormY = 1f - event.y / sv.height.toFloat()
                             val bondPick = pickBond(
-                                ligand = ligand,
                                 tapPxX = event.x,
                                 tapPxY = event.y,
                                 viewWidthPx = sv.width,
                                 viewHeightPx = sv.height,
                                 cameraNode = cameraNode,
-                                centerOffset = focusOffset,
-                                showHydrogens = showHydrogens
+                                atomNodeMap = atomNodeMap,
+                                ligand = ligand
                             )
                             var closestAtom: Atom? = null
                             var closestDist = Float.MAX_VALUE
@@ -1567,56 +1583,44 @@ private fun MoleculeViewer(
                                     closestAtom = atom
                                 }
                             }
+                            val atomDistPx = closestDist * sv.width.toFloat()
+                            val atomHit = closestAtom != null && closestDist < ATOM_PICK_RADIUS_NORM
+                            val bondDistPx = bondPick?.distancePx ?: Float.MAX_VALUE
+                            val bondScreenHit = bondPick != null && bondDistPx <= bondPick.thresholdPx
+                            val bondHit = bondScreenHit && (!atomHit || bondDistPx + 18f < atomDistPx)
+                            val atomWins = atomHit && (!bondScreenHit || atomDistPx + 18f <= bondDistPx)
                             if (measurementMode) {
-                                val bond = bondPick?.first
-                                val bondDistPx = bondPick?.second ?: Float.MAX_VALUE
-                                val atomDistPx = if (closestAtom != null) {
-                                    closestDist * sv.width.toFloat()
-                                } else Float.MAX_VALUE
-                                if (bond != null && bondDistPx < 22f && (closestAtom == null || bondDistPx < atomDistPx - 6f)) {
-                                    onMeasurementBondTapped(bond)
-                                } else if (closestAtom != null && closestDist < 0.12f) {
-                                    onMeasurementAtomTapped(closestAtom)
+                                when {
+                                    bondHit -> onMeasurementBondTapped(bondPick!!.bond)
+                                    atomWins -> onMeasurementAtomTapped(closestAtom!!)
                                 }
-                            } else if (closestAtom != null && closestDist < 0.12f) {
-                                val bond = bondPick?.first
-                                val bondDistPx = bondPick?.second ?: Float.MAX_VALUE
-                                val atomDistPx = closestDist * sv.width.toFloat()
-                                val atomVeryClose = atomDistPx < 14f
-                                val chooseBond = !atomVeryClose && bond != null && bondDistPx < 18f && bondDistPx < atomDistPx - 4f
-                                if (chooseBond) {
-                                    onBondSelected(bond)
-                                } else {
-                                    onAtomSelected(closestAtom)
-                                }
-
-                                val now = event.eventTime
-                                val prev = lastTap[0]
-                                val prevId = lastTapAtomId[0]
-                                if (prevId == closestAtom.id && now - prev < 550L) {
-                                    val atomsForCenter = ligand.atoms.filterNot {
-                                        val e = it.element.uppercase().trim()
-                                        e == "H" || e == "D"
-                                    }.ifEmpty { ligand.atoms }
-                                    val cx = atomsForCenter.map { it.x }.average().toFloat()
-                                    val cy = atomsForCenter.map { it.y }.average().toFloat()
-                                    val cz = atomsForCenter.map { it.z }.average().toFloat()
-                                    focusTarget = Float3(
-                                        closestAtom.x - cx,
-                                        closestAtom.y - cy,
-                                        closestAtom.z - cz
-                                    )
-                                }
-                                lastTap[0] = now
-                                lastTapAtomId[0] = closestAtom.id
-                            } else {
-                                if (!measurementMode) {
-                                    if (bondPick != null && bondPick.second < 22f) {
-                                        onBondSelected(bondPick.first)
-                                    } else {
-                                        onDismissAtom()
-                                        onDismissBond()
+                            } else when {
+                                bondHit -> onBondSelected(bondPick!!.bond)
+                                atomWins -> {
+                                    onAtomSelected(closestAtom!!)
+                                    val now = event.eventTime
+                                    val prev = lastTap[0]
+                                    val prevId = lastTapAtomId[0]
+                                    if (prevId == closestAtom.id && now - prev < 550L) {
+                                        val atomsForCenter = ligand.atoms.filterNot {
+                                            val e = it.element.uppercase().trim()
+                                            e == "H" || e == "D"
+                                        }.ifEmpty { ligand.atoms }
+                                        val cx = atomsForCenter.map { it.x }.average().toFloat()
+                                        val cy = atomsForCenter.map { it.y }.average().toFloat()
+                                        val cz = atomsForCenter.map { it.z }.average().toFloat()
+                                        focusTarget = Float3(
+                                            closestAtom.x - cx,
+                                            closestAtom.y - cy,
+                                            closestAtom.z - cz
+                                        )
                                     }
+                                    lastTap[0] = now
+                                    lastTapAtomId[0] = closestAtom.id
+                                }
+                                else -> {
+                                    onDismissAtom()
+                                    onDismissBond()
                                 }
                             }
                         }
@@ -1632,6 +1636,26 @@ private fun MoleculeViewer(
             onViewCreated = {
                 sceneViewRef[0] = this
                 onSceneViewForScreenshot(this)
+                isFocusable = true
+                isFocusableInTouchMode = true
+                setOnGenericMotionListener { _, motionEvent ->
+                    if (motionEvent.actionMasked != MotionEvent.ACTION_SCROLL) return@setOnGenericMotionListener false
+                    val wheel = motionEvent.getAxisValue(MotionEvent.AXIS_VSCROLL)
+                    val genericScroll = motionEvent.getAxisValue(MotionEvent.AXIS_SCROLL)
+                    val hScroll = motionEvent.getAxisValue(MotionEvent.AXIS_HSCROLL)
+                    val scroll = when {
+                        wheel != 0f -> wheel
+                        genericScroll != 0f -> genericScroll
+                        else -> 0f
+                    }
+                    if (scroll != 0f && kotlin.math.abs(scroll) >= kotlin.math.abs(hScroll)) {
+                        applyScrollZoom(scroll)
+                        true
+                    } else {
+                        false
+                    }
+                }
+                requestFocus()
                 setZOrderOnTop(true)
                 runCatching { holder.setFormat(PixelFormat.TRANSLUCENT) }
                 runCatching {
@@ -1786,6 +1810,50 @@ private fun MoleculeViewer(
     }
 }
 
+private fun angleDegrees(vertex: Atom, arm1: Atom, arm2: Atom): Float {
+    val v1 = Float3(arm1.x - vertex.x, arm1.y - vertex.y, arm1.z - vertex.z)
+    val v2 = Float3(arm2.x - vertex.x, arm2.y - vertex.y, arm2.z - vertex.z)
+    val dot = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
+    val len1 = kotlin.math.sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z)
+    val len2 = kotlin.math.sqrt(v2.x * v2.x + v2.y * v2.y + v2.z * v2.z)
+    if (len1 <= 1e-6f || len2 <= 1e-6f) return 0f
+    val cos = (dot / (len1 * len2)).coerceIn(-1f, 1f)
+    return kotlin.math.acos(cos) * 180f / kotlin.math.PI.toFloat()
+}
+
+private fun formatAtomDistance(atoms: List<Atom>): String {
+    val a = atoms[atoms.size - 2]
+    val b = atoms[atoms.size - 1]
+    val dx = a.x - b.x
+    val dy = a.y - b.y
+    val dz = a.z - b.z
+    val d = kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
+    return "Distance ${a.id}–${b.id}: ${String.format("%.2f Å", d)}"
+}
+
+private fun formatAtomAngle(atoms: List<Atom>): String {
+    val p1 = atoms[atoms.size - 3]
+    val vertex = atoms[atoms.size - 2]
+    val p2 = atoms[atoms.size - 1]
+    val angle = angleDegrees(vertex, p1, p2)
+    return "Angle at ${vertex.id}: ${String.format("%.1f°", angle)}"
+}
+
+private fun formatBondAngle(ligand: Ligand, selectedBonds: List<Bond>): String {
+    val b1 = selectedBonds[selectedBonds.size - 2]
+    val b2 = selectedBonds[selectedBonds.size - 1]
+    val common = sequenceOf(b1.atomId1, b1.atomId2).firstOrNull { it == b2.atomId1 || it == b2.atomId2 }
+        ?: return "Angle: pick 2 bonds sharing one atom"
+    val vertex = ligand.atoms.firstOrNull { it.id == common } ?: return "Angle: unavailable"
+    val other1Id = if (b1.atomId1 == common) b1.atomId2 else b1.atomId1
+    val other2Id = if (b2.atomId1 == common) b2.atomId2 else b2.atomId1
+    val p1 = ligand.atoms.firstOrNull { it.id == other1Id }
+    val p2 = ligand.atoms.firstOrNull { it.id == other2Id }
+    if (p1 == null || p2 == null) return "Angle: unavailable"
+    val angle = angleDegrees(vertex, p1, p2)
+    return "Angle at ${vertex.id}: ${String.format("%.1f°", angle)}"
+}
+
 @Composable
 private fun MeasurementOverlay(
     ligand: Ligand,
@@ -1799,49 +1867,15 @@ private fun MeasurementOverlay(
     val maxCardDp = kotlin.math.min(kotlin.math.max(screenWidthDp - 24, 120), 304)
     val atoms = selectedAtomIds.mapNotNull { id -> ligand.atoms.firstOrNull { it.id == id } }
     val details = when {
-        selectedBonds.size >= 2 -> {
-            val b1 = selectedBonds[selectedBonds.size - 2]
-            val b2 = selectedBonds[selectedBonds.size - 1]
-            val common = sequenceOf(b1.atomId1, b1.atomId2).firstOrNull { it == b2.atomId1 || it == b2.atomId2 }
-            if (common == null) {
-                "Angle: select 2 bonds that share an atom"
-            } else {
-                val a = ligand.atoms.firstOrNull { it.id == common }
-                val other1Id = if (b1.atomId1 == common) b1.atomId2 else b1.atomId1
-                val other2Id = if (b2.atomId1 == common) b2.atomId2 else b2.atomId1
-                val p1 = ligand.atoms.firstOrNull { it.id == other1Id }
-                val p2 = ligand.atoms.firstOrNull { it.id == other2Id }
-                if (a == null || p1 == null || p2 == null) {
-                    "Angle: unavailable"
-                } else {
-                    val v1 = Float3(p1.x - a.x, p1.y - a.y, p1.z - a.z)
-                    val v2 = Float3(p2.x - a.x, p2.y - a.y, p2.z - a.z)
-                    val dot = (v1.x * v2.x + v1.y * v2.y + v1.z * v2.z)
-                    val len1 = kotlin.math.sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z)
-                    val len2 = kotlin.math.sqrt(v2.x * v2.x + v2.y * v2.y + v2.z * v2.z)
-                    val angle = if (len1 > 1e-6f && len2 > 1e-6f) {
-                        val cos = (dot / (len1 * len2)).coerceIn(-1f, 1f)
-                        kotlin.math.acos(cos) * 180f / kotlin.math.PI.toFloat()
-                    } else 0f
-                    "Angle (${other1Id}–$common–${other2Id}): ${String.format("%.1f°", angle)}"
-                }
-            }
-        }
-        atoms.size >= 2 -> {
-            val a = atoms[atoms.size - 2]
-            val b = atoms[atoms.size - 1]
-            val dx = a.x - b.x
-            val dy = a.y - b.y
-            val dz = a.z - b.z
-            val d = kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
-            "Distance (${a.id}–${b.id}): ${String.format("%.2f Å", d)}"
-        }
+        selectedBonds.size >= 2 -> formatBondAngle(ligand, selectedBonds)
+        atoms.size >= 3 -> formatAtomAngle(atoms)
+        atoms.size >= 2 -> formatAtomDistance(atoms)
         selectedBonds.size == 1 -> {
             val b = selectedBonds.last()
-            "Selected bond ${b.atomId1}–${b.atomId2}"
+            "Bond 1/2: ${b.atomId1}–${b.atomId2}"
         }
-        atoms.size == 1 -> "Selected ${atoms[0].id}"
-        else -> "Tap 2 atoms (distance) or 2 bonds (angle)"
+        atoms.size == 1 -> "Atom 1/3: ${atoms[0].id}"
+        else -> "2 atoms → distance, 3 atoms or 2 bonds → angle"
     }
     val headerText = "Measure mode:"
     val detailText = details
@@ -2050,64 +2084,92 @@ private class ScreenRecorder(
     }
 }
 
+private const val ATOM_PICK_RADIUS_NORM = 0.14f
+
+private data class BondPickCandidate(
+    val bond: Bond,
+    val distancePx: Float,
+    val thresholdPx: Float
+)
+
+private fun worldPositionToScreenPx(
+    worldPos: io.github.sceneview.math.Position,
+    cameraNode: io.github.sceneview.node.CameraNode,
+    viewWidthPx: Int,
+    viewHeightPx: Int
+): Pair<Float, Float> {
+    val view = cameraNode.worldToView(worldPos)
+    return view.x * viewWidthPx.toFloat() to (1f - view.y) * viewHeightPx.toFloat()
+}
+
+private fun bondPickThresholdPx(screenSegmentLengthPx: Float, order: BondOrder): Float {
+    val along = (screenSegmentLengthPx * 0.45f + 44f).coerceIn(60f, 120f)
+    val orderExtra = when (order) {
+        BondOrder.TRIPLE -> 16f
+        BondOrder.DOUBLE, BondOrder.AROMATIC -> 12f
+        else -> 0f
+    }
+    return along + orderExtra
+}
+
 private fun pickBond(
-    ligand: Ligand,
     tapPxX: Float,
     tapPxY: Float,
     viewWidthPx: Int,
     viewHeightPx: Int,
     cameraNode: io.github.sceneview.node.CameraNode,
-    centerOffset: Float3,
-    showHydrogens: Boolean = false
-): Pair<Bond, Float>? {
-    val atomsForCenter = ligand.atoms.filterNot {
-        val e = it.element.uppercase().trim()
-        e == "H" || e == "D"
-    }.ifEmpty { ligand.atoms }
-    val cx = atomsForCenter.map { it.x }.average().toFloat()
-    val cy = atomsForCenter.map { it.y }.average().toFloat()
-    val cz = atomsForCenter.map { it.z }.average().toFloat()
+    atomNodeMap: Map<MeshNode, Atom>,
+    ligand: Ligand
+): BondPickCandidate? {
+    val nodeByAtomId = atomNodeMap.entries.associate { it.value.id to it.key }
+    var best: BondPickCandidate? = null
 
-    val pickableAtoms = if (showHydrogens) ligand.atoms else atomsForCenter
-    val atomById = pickableAtoms.associateBy { it.id }
-    var best: Bond? = null
-    var bestDist = Float.MAX_VALUE
-
-    for (bond in ligand.bonds) {
-        val a1 = atomById[bond.atomId1] ?: continue
-        val a2 = atomById[bond.atomId2] ?: continue
-        val p1w = io.github.sceneview.math.Position(
-            (a1.x - cx) - centerOffset.x,
-            (a1.y - cy) - centerOffset.y,
-            (a1.z - cz) - centerOffset.z
-        )
-        val p2w = io.github.sceneview.math.Position(
-            (a2.x - cx) - centerOffset.x,
-            (a2.y - cy) - centerOffset.y,
-            (a2.z - cz) - centerOffset.z
-        )
-        val p1 = cameraNode.worldToView(p1w)
-        val p2 = cameraNode.worldToView(p2w)
-
-        val x1 = p1.x * viewWidthPx.toFloat()
-        val y1 = (1f - p1.y) * viewHeightPx.toFloat()
-        val x2 = p2.x * viewWidthPx.toFloat()
-        val y2 = (1f - p2.y) * viewHeightPx.toFloat()
-
-        val d = pointToSegmentDistance(
-            px = tapPxX,
-            py = tapPxY,
-            x1 = x1,
-            y1 = y1,
-            x2 = x2,
-            y2 = y2
-        )
-        if (d < bestDist) {
-            bestDist = d
-            best = bond
+    fun consider(bond: Bond, distancePx: Float, thresholdPx: Float) {
+        if (distancePx > thresholdPx) return
+        if (best == null || distancePx < best!!.distancePx) {
+            best = BondPickCandidate(bond, distancePx, thresholdPx)
         }
     }
-    return best?.let { it to bestDist }
+
+    for (bond in ligand.bonds) {
+        val n1 = nodeByAtomId[bond.atomId1] ?: continue
+        val n2 = nodeByAtomId[bond.atomId2] ?: continue
+        val (x1, y1) = worldPositionToScreenPx(n1.worldPosition, cameraNode, viewWidthPx, viewHeightPx)
+        val (x2, y2) = worldPositionToScreenPx(n2.worldPosition, cameraNode, viewWidthPx, viewHeightPx)
+        val d = pointToSegmentDistanceForBondPick(tapPxX, tapPxY, x1, y1, x2, y2)
+        val segLen = hypot(x2 - x1, y2 - y1)
+        consider(bond, d, bondPickThresholdPx(segLen, bond.order))
+    }
+
+    return best
+}
+
+private fun pointToSegmentDistanceForBondPick(
+    px: Float,
+    py: Float,
+    x1: Float,
+    y1: Float,
+    x2: Float,
+    y2: Float
+): Float {
+    val vx = x2 - x1
+    val vy = y2 - y1
+    val vv = vx * vx + vy * vy
+    if (vv <= 1e-12f) {
+        return hypot(px - x1, py - y1)
+    }
+    val wx = px - x1
+    val wy = py - y1
+    val t = ((wx * vx + wy * vy) / vv).coerceIn(0f, 1f)
+    val cx = x1 + t * vx
+    val cy = y1 + t * vy
+    val d = hypot(px - cx, py - cy)
+    val segLen = hypot(vx, vy)
+    val guard = minOf(32f, segLen * 0.24f)
+    val distFromStart = hypot(cx - x1, cy - y1)
+    val distFromEnd = hypot(cx - x2, cy - y2)
+    val endpointPenalty = if (distFromStart < guard || distFromEnd < guard) guard * 1.4f else 0f
+    return d + endpointPenalty
 }
 
 private fun pointToSegmentDistance(
