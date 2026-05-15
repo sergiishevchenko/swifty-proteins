@@ -1258,8 +1258,6 @@ private fun MoleculeViewer(
             val measurementAtomIdSet: Set<String> = if (measurementMode) {
                 if (measurementBonds.isNotEmpty()) {
                     emptySet()
-                } else if (measurementAtomIds.size >= 3) {
-                    measurementAtomIds.takeLast(3).toSet()
                 } else {
                     measurementAtomIds.takeLast(2).toSet()
                 }
@@ -1831,14 +1829,6 @@ private fun formatAtomDistance(atoms: List<Atom>): String {
     return "Distance ${a.id}–${b.id}: ${String.format("%.2f Å", d)}"
 }
 
-private fun formatAtomAngle(atoms: List<Atom>): String {
-    val p1 = atoms[atoms.size - 3]
-    val vertex = atoms[atoms.size - 2]
-    val p2 = atoms[atoms.size - 1]
-    val angle = angleDegrees(vertex, p1, p2)
-    return "Angle at ${vertex.id}: ${String.format("%.1f°", angle)}"
-}
-
 private fun formatBondAngle(ligand: Ligand, selectedBonds: List<Bond>): String {
     val b1 = selectedBonds[selectedBonds.size - 2]
     val b2 = selectedBonds[selectedBonds.size - 1]
@@ -1868,14 +1858,13 @@ private fun MeasurementOverlay(
     val atoms = selectedAtomIds.mapNotNull { id -> ligand.atoms.firstOrNull { it.id == id } }
     val details = when {
         selectedBonds.size >= 2 -> formatBondAngle(ligand, selectedBonds)
-        atoms.size >= 3 -> formatAtomAngle(atoms)
         atoms.size >= 2 -> formatAtomDistance(atoms)
         selectedBonds.size == 1 -> {
             val b = selectedBonds.last()
             "Bond 1/2: ${b.atomId1}–${b.atomId2}"
         }
-        atoms.size == 1 -> "Atom 1/3: ${atoms[0].id}"
-        else -> "2 atoms → distance, 3 atoms or 2 bonds → angle"
+        atoms.size == 1 -> "Atom 1/2: ${atoms[0].id}"
+        else -> "2 atoms → distance, 2 bonds (shared atom) → angle"
     }
     val headerText = "Measure mode:"
     val detailText = details

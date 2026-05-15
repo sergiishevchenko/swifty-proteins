@@ -171,7 +171,7 @@ class ProteinViewViewModel @Inject constructor(
         val next = state.measurementAtomIds.toMutableList()
         if (next.isNotEmpty() && next.last() == atom.id) return
         next.add(atom.id)
-        while (next.size > 3) next.removeAt(0)
+        while (next.size > 2) next.removeAt(0)
         _uiState.update {
             it.copy(
                 measurementAtomIds = next,
