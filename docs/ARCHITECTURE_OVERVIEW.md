@@ -33,7 +33,7 @@ This project is an Android (Kotlin) implementation of the **Swifty Proteins** as
 
 ## High-level modules
 
-- **UI / Navigation**: Compose screens + navigation graph.
+- **UI / Navigation**: Compose screens + navigation graph; shared logout confirmation and Login redirect policy ([`NAVIGATION.md`](NAVIGATION.md)).
 - **Authentication**: local users, login/register, biometric prompt.
 - **Ligand catalog**: load ligand IDs from [`ligands.txt`](../app/src/main/res/raw/ligands.txt), search, select.
 - **Data layer**: download CIF from RCSB, cache to disk, parse to domain model.
@@ -48,10 +48,7 @@ This project is an Android (Kotlin) implementation of the **Swifty Proteins** as
 1. **Splash** → **Login**
 2. Login/register (biometric optional).
 3. **Protein list**: search ligand IDs loaded from [`ligands.txt`](../app/src/main/res/raw/ligands.txt).
-4. Select a ligand:
-   - download CIF from RCSB
-   - cache CIF to disk
-   - parse CIF to `Ligand` (atoms + bonds)
+4. Select a ligand → open protein view; `ProteinViewViewModel` downloads CIF from RCSB, caches to disk, parses to `Ligand`. On failure, **Retry** / **Back** on the protein view.
 5. **Protein view**: render 3D model and use overlays:
    - select atom/bond → tooltip
    - (Balls mode) labels + measurement

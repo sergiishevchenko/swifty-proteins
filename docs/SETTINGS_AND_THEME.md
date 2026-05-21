@@ -41,4 +41,8 @@ Stored as `show_hydrogens_by_default` in DataStore. When enabled, the 3D viewer 
 
 ## Logout
 
-The Settings top bar shows the current username and a logout action. Logout clears the session and navigates back to Login (same security model as returning from background).
+The Settings top bar (and the same pattern on ligand list, favorites, compare, and protein view) shows the current username and a logout icon.
+
+Logout is **not** immediate: [`NavGraph.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/navigation/NavGraph.kt) shows [`LogoutConfirmDialog.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/navigation/LogoutConfirmDialog.kt) first. After confirmation, `SessionViewModel.logout()` clears the in-memory session and navigation returns to Login with an empty back stack.
+
+This is separate from the **background → Login** policy in [`NAVIGATION.md`](NAVIGATION.md) (resume after Home does not use the confirmation dialog). Encrypted `last_username` is kept for biometric convenience; see [`SECURE_STORAGE.md`](SECURE_STORAGE.md).

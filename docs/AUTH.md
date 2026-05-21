@@ -50,3 +50,13 @@ adb exec-out run-as com.music42.swiftyprotein cat databases/swifty_protein_db > 
 `MainActivity` sets an internal flag when the user leaves the app, and forces a navigation back to Login on resume.
 
 Note: some OS dialogs (e.g., MediaProjection permission) behave like background/foreground transitions. The app suppresses login-redirect for that specific case.
+
+## Explicit logout (top-bar icon)
+
+Available from ligand list, favorites, compare, settings, and protein view. Flow is centralized in navigation:
+
+1. User taps logout → confirmation dialog (`LogoutConfirmDialog`).
+2. On confirm → `SessionViewModel.logout()` clears the displayed session username only.
+3. Nav host navigates to Login and clears the back stack.
+
+`SecureStorage.last_username` is **not** cleared on logout, so the login screen can still offer biometrics when the typed username matches the last signed-in user. Password login always remains available.
