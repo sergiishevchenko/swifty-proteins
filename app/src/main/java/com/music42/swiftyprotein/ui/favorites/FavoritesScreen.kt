@@ -59,7 +59,7 @@ fun FavoritesScreen(
 ) {
     val favorites by viewModel.favoriteLigandIds.collectAsState()
     var selectedForCompare by remember { mutableStateOf(setOf<String>()) }
-    val accentGreen = Color(0xFF4CAF50)
+    val accentColor = MaterialTheme.colorScheme.primary
 
     Scaffold(
         topBar = {
@@ -90,7 +90,7 @@ fun FavoritesScreen(
                             text = currentUsername,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = accentGreen,
+                            color = accentColor,
                             modifier = Modifier.padding(horizontal = 6.dp)
                         )
                     }
@@ -100,9 +100,9 @@ fun FavoritesScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    navigationIconContentColor = accentGreen,
-                    actionIconContentColor = accentGreen,
-                    titleContentColor = accentGreen
+                    navigationIconContentColor = accentColor,
+                    actionIconContentColor = accentColor,
+                    titleContentColor = accentColor
                 )
             )
         }
@@ -128,7 +128,6 @@ fun FavoritesScreen(
                 ) {
                     items(items = favorites, key = { it }) { ligandId ->
                         val selected = selectedForCompare.contains(ligandId)
-                        val accentGreen = Color(0xFF4CAF50)
                         val containerColor by animateColorAsState(
                             targetValue = if (selected)
                                 MaterialTheme.colorScheme.primaryContainer
@@ -166,7 +165,7 @@ fun FavoritesScreen(
                                     Text(
                                         text = ligandId,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = accentGreen
+                                        color = accentColor
                                     )
                                     if (selected) {
                                         Text(
@@ -180,7 +179,7 @@ fun FavoritesScreen(
                                     Icon(
                                         Icons.Default.Star,
                                         contentDescription = "Remove from favorites",
-                                        tint = accentGreen,
+                                        tint = accentColor,
                                         modifier = Modifier.graphicsLayer {
                                             scaleX = starScale
                                             scaleY = starScale
@@ -191,7 +190,7 @@ fun FavoritesScreen(
                                     Icon(
                                         Icons.Default.OpenInNew,
                                         contentDescription = "Open",
-                                        tint = accentGreen
+                                        tint = accentColor
                                     )
                                 }
                             }

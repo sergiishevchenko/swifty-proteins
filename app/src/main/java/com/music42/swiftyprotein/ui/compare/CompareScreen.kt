@@ -66,7 +66,7 @@ fun CompareScreen(
     viewModel: CompareViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val accentGreen = Color(0xFF4CAF50)
+    val accentColor = MaterialTheme.colorScheme.primary
 
     Scaffold(
         topBar = {
@@ -83,7 +83,7 @@ fun CompareScreen(
                             text = currentUsername,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = accentGreen,
+                            color = accentColor,
                             modifier = Modifier.padding(horizontal = 6.dp)
                         )
                     }
@@ -93,9 +93,9 @@ fun CompareScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    navigationIconContentColor = accentGreen,
-                    actionIconContentColor = accentGreen,
-                    titleContentColor = accentGreen
+                    navigationIconContentColor = accentColor,
+                    actionIconContentColor = accentColor,
+                    titleContentColor = accentColor
                 )
             )
         }

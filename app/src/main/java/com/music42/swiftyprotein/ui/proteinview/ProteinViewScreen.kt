@@ -89,8 +89,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
+import com.music42.swiftyprotein.R
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 import androidx.core.content.FileProvider
@@ -131,7 +133,7 @@ fun ProteinViewScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
-    val accentGreen = Color(0xFF4CAF50)
+    val accentColor = MaterialTheme.colorScheme.primary
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val sceneTint = if (MaterialTheme.colorScheme.background.red < 0.4f) {
@@ -284,7 +286,7 @@ fun ProteinViewScreen(
                             text = currentUsername,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = accentGreen,
+                            color = accentColor,
                             modifier = Modifier.padding(horizontal = 6.dp)
                         )
                     }
@@ -294,9 +296,9 @@ fun ProteinViewScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    navigationIconContentColor = accentGreen,
-                    actionIconContentColor = accentGreen,
-                    titleContentColor = accentGreen
+                    navigationIconContentColor = accentColor,
+                    actionIconContentColor = accentColor,
+                    titleContentColor = accentColor
                 )
             )
         }
@@ -328,7 +330,7 @@ fun ProteinViewScreen(
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Loading ligand $safeLigandId",
+                                text = stringResource(R.string.loading_ligand_id, safeLigandId),
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Spacer(modifier = Modifier.height(8.dp))
@@ -352,7 +354,7 @@ fun ProteinViewScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Failed to load ligand",
+                            text = stringResource(R.string.load_failed_title),
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -1056,7 +1058,7 @@ fun ProteinViewScreen(
             text = { Text(recordErrorMessage!!) },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = { recordErrorMessage = null }) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             }
         )
@@ -1065,16 +1067,20 @@ fun ProteinViewScreen(
     if (uiState.largeMoleculeWarning) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { viewModel.dismissLargeMoleculeWarning() },
-            title = { Text("Large molecule") },
+            title = { Text(stringResource(R.string.large_molecule_title)) },
             text = {
+                val atomCount = uiState.ligand?.atoms?.size
                 Text(
-                    "This ligand has ${uiState.ligand?.atoms?.size ?: "many"} atoms. " +
-                        "Rendering quality has been reduced for better performance."
+                    if (atomCount != null) {
+                        stringResource(R.string.large_molecule_message, atomCount)
+                    } else {
+                        stringResource(R.string.load_error_message)
+                    }
                 )
             },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = { viewModel.dismissLargeMoleculeWarning() }) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             }
         )

@@ -48,6 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.music42.swiftyprotein.R
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -112,7 +114,7 @@ fun LoginScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Swifty Proteins",
+                            text = stringResource(R.string.app_name),
                             style = MaterialTheme.typography.headlineLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -120,7 +122,11 @@ fun LoginScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = if (uiState.isRegistering) "Create Account" else "Welcome Back",
+                            text = if (uiState.isRegistering) {
+                                stringResource(R.string.create_account_title)
+                            } else {
+                                stringResource(R.string.welcome_back)
+                            },
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onBackground
                         )
@@ -130,7 +136,7 @@ fun LoginScreen(
                         OutlinedTextField(
                             value = uiState.username,
                             onValueChange = viewModel::onUsernameChange,
-                            label = { Text("Username") },
+                            label = { Text(stringResource(R.string.username_hint)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
@@ -141,7 +147,7 @@ fun LoginScreen(
                         OutlinedTextField(
                             value = uiState.password,
                             onValueChange = viewModel::onPasswordChange,
-                            label = { Text("Password") },
+                            label = { Text(stringResource(R.string.password_hint)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             visualTransformation = if (passwordVisible)
@@ -178,7 +184,13 @@ fun LoginScreen(
                                     strokeWidth = 2.dp
                                 )
                             } else {
-                                Text(if (uiState.isRegistering) "Create Account" else "Log In")
+                                Text(
+                                    if (uiState.isRegistering) {
+                                        stringResource(R.string.register_button)
+                                    } else {
+                                        stringResource(R.string.login_button)
+                                    }
+                                )
                             }
                         }
 
@@ -186,10 +198,11 @@ fun LoginScreen(
 
                         TextButton(onClick = viewModel::toggleRegisterMode) {
                             Text(
-                                if (uiState.isRegistering)
-                                    "Already have an account? Log In"
-                                else
-                                    "Don't have an account? Register"
+                                if (uiState.isRegistering) {
+                                    stringResource(R.string.register_switch_to_login)
+                                } else {
+                                    stringResource(R.string.register_switch_to_register)
+                                }
                             )
                         }
 
@@ -201,6 +214,9 @@ fun LoginScreen(
                                         val activity = context as? FragmentActivity ?: return@OutlinedButton
                                         BiometricHelper.authenticate(
                                             activity = activity,
+                                            title = context.getString(R.string.biometric_title),
+                                            subtitle = context.getString(R.string.biometric_subtitle),
+                                            negativeButtonText = context.getString(R.string.biometric_cancel),
                                             onSuccess = viewModel::onBiometricSuccess,
                                             onFailure = viewModel::onBiometricFailure
                                         )
@@ -213,7 +229,7 @@ fun LoginScreen(
                                         modifier = Modifier.size(24.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Login with Fingerprint")
+                                    Text(stringResource(R.string.biometric_login))
                                 }
                             }
                         }
@@ -235,7 +251,7 @@ fun LoginScreen(
             },
             title = {
                 Text(
-                    text = "Authentication Failed",
+                    text = stringResource(R.string.auth_failed_title),
                     style = MaterialTheme.typography.titleLarge
                 )
             },
@@ -251,7 +267,7 @@ fun LoginScreen(
             iconContentColor = MaterialTheme.colorScheme.error,
             confirmButton = {
                 Button(onClick = viewModel::dismissError) {
-                    Text("Got it")
+                    Text(stringResource(R.string.auth_failed_got_it))
                 }
             }
         )

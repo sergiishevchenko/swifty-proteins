@@ -45,6 +45,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.music42.swiftyprotein.R
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.text.font.FontWeight
@@ -62,7 +64,7 @@ fun ProteinListScreen(
     viewModel: ProteinListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val accentGreen = Color(0xFF4CAF50)
+    val accentColor = MaterialTheme.colorScheme.primary
 
     LaunchedEffect(uiState.navigateToLigand) {
         uiState.navigateToLigand?.let { ligandId ->
@@ -74,7 +76,7 @@ fun ProteinListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ligands") },
+                title = { Text(stringResource(R.string.ligands_title)) },
                 actions = {
                     IconButton(onClick = onOpenFavorites) {
                         Icon(Icons.Default.Star, contentDescription = "Favorites")
@@ -87,7 +89,7 @@ fun ProteinListScreen(
                             text = currentUsername,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = accentGreen,
+                            color = accentColor,
                             modifier = Modifier.padding(horizontal = 6.dp)
                         )
                     }
@@ -97,9 +99,9 @@ fun ProteinListScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    navigationIconContentColor = accentGreen,
-                    actionIconContentColor = accentGreen,
-                    titleContentColor = accentGreen
+                    navigationIconContentColor = accentColor,
+                    actionIconContentColor = accentColor,
+                    titleContentColor = accentColor
                 )
             )
         }
@@ -114,7 +116,7 @@ fun ProteinListScreen(
                     value = uiState.searchQuery,
                     onValueChange = viewModel::onSearchQueryChange,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Search ligand...") },
+                    placeholder = { Text(stringResource(R.string.search_hint)) },
                     leadingIcon = {
                         Icon(Icons.Default.Search, contentDescription = "Search")
                     },
@@ -211,9 +213,9 @@ private fun LigandItem(
         animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "favorite_scale"
     )
-    val accentGreen = Color(0xFF4CAF50)
+    val accentColor = MaterialTheme.colorScheme.primary
     val starTint by animateColorAsState(
-        targetValue = if (isFavorite) accentGreen else accentGreen.copy(alpha = 0.65f),
+        targetValue = if (isFavorite) accentColor else accentColor.copy(alpha = 0.65f),
         animationSpec = tween(durationMillis = 220),
         label = "favorite_tint"
     )
@@ -238,7 +240,7 @@ private fun LigandItem(
                 Text(
                     text = ligandId,
                     fontWeight = FontWeight.SemiBold,
-                    color = accentGreen
+                    color = accentColor
                 )
                 if (subtitle != null) {
                     Text(

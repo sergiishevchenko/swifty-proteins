@@ -41,7 +41,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsState()
-    val accentGreen = Color(0xFF4CAF50)
+    val accentColor = MaterialTheme.colorScheme.primary
 
     Scaffold(
         topBar = {
@@ -58,7 +58,7 @@ fun SettingsScreen(
                             text = currentUsername,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = accentGreen,
+                            color = accentColor,
                             modifier = Modifier.padding(horizontal = 6.dp)
                         )
                     }
@@ -68,9 +68,9 @@ fun SettingsScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    navigationIconContentColor = accentGreen,
-                    actionIconContentColor = accentGreen,
-                    titleContentColor = accentGreen
+                    navigationIconContentColor = accentColor,
+                    actionIconContentColor = accentColor,
+                    titleContentColor = accentColor
                 )
             )
         }
