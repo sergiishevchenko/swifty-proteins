@@ -191,7 +191,7 @@ app/src/main/java/com/music42/swiftyprotein/
 │   └── settings/ (SettingsRepository, AppSettings)
 ├── ui/
 │   ├── AppRoot.kt
-│   ├── navigation/ (NavGraph, Screen)
+│   ├── navigation/ (NavGraph, Screen, LogoutConfirmDialog)
 │   ├── session/SessionViewModel.kt
 │   ├── login/
 │   ├── onboarding/
@@ -228,6 +228,7 @@ app/src/main/java/com/music42/swiftyprotein/
 - Password fallback when biometric is unavailable.
 - Error popup on failed authentication.
 - Login screen is shown again when app returns from background (security requirement).
+- Explicit logout (top-bar icon) asks for confirmation, then clears the session and navigates to Login; `last_username` is kept for biometric convenience.
 - Biometric login is available only for the **last signed-in user** (username must match).
 
 ### Ligand Catalog
@@ -235,7 +236,7 @@ app/src/main/java/com/music42/swiftyprotein/
 - Ligand IDs are loaded from local `res/raw/ligands.txt`.
 - Search by substring (case-insensitive).
 - Empty search state message.
-- Loading/error handling for selection and fetch failures.
+- Loading/error handling: catalog load errors show a dialog with **Retry**; protein view fetch errors show **Retry** and **Back** (fetch runs in `ProteinViewViewModel` after navigation, not prefetched from the list).
 - List rows can show cached ligand info (formula + atom count) when available.
 
 ### Favorites + Compare
@@ -273,6 +274,8 @@ app/src/main/java/com/music42/swiftyprotein/
 
 - Splash screen with enforced visible duration (~2s).
 - Material 3 styling across screens.
+- Logout confirmation dialog before leaving the app session.
+- Load failures: **Retry** on ligand list (catalog) and protein view (CIF fetch).
 - Model loading card with progress indicators and rotating status messages.
 - Onboarding: multi-step walkthrough (gestures, modes/sharing, favorites/settings).
 - Settings: theme, default visualization mode, and “show hydrogens by default”.
