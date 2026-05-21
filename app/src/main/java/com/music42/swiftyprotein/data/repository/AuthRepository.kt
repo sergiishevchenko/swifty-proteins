@@ -78,10 +78,6 @@ class AuthRepository @Inject constructor(
         return secureStorage.getLastUsername()
     }
 
-    fun logout() {
-        secureStorage.clearLastUsername()
-    }
-
     suspend fun userExists(username: String): Boolean {
         return userDao.findByUsername(username) != null
     }

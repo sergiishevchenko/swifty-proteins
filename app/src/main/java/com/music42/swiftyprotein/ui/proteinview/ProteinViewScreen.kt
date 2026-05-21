@@ -15,7 +15,6 @@ import android.graphics.ImageFormat
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
-import android.view.Choreographer
 import android.view.MotionEvent
 import android.view.PixelCopy
 import android.hardware.display.DisplayManager
@@ -1251,23 +1250,6 @@ private fun MoleculeViewer(
         }
     }
 
-    DisposableEffect(showAtomLabels, overlaysEnabled) {
-        if (!showAtomLabels || !overlaysEnabled) {
-            return@DisposableEffect onDispose { }
-        }
-        val choreographer = Choreographer.getInstance()
-        val frameCallback = object : Choreographer.FrameCallback {
-            override fun doFrame(frameTimeNanos: Long) {
-                labelOverlayViewRef[0]?.invalidate()
-                choreographer.postFrameCallback(this)
-            }
-        }
-        choreographer.postFrameCallback(frameCallback)
-        onDispose {
-            choreographer.removeFrameCallback(frameCallback)
-        }
-    }
-
     val (parentNode, atomNodeMap, bondNodeMap) = remember(ligand, mode, showHydrogens) {
         MoleculeSceneBuilder.build(
             engine = engine,
@@ -1380,6 +1362,18 @@ private fun MoleculeViewer(
     val tapDownPos = remember { floatArrayOf(0f, 0f) }
     val tapDownTime = remember { longArrayOf(0L) }
     val sceneViewRef = remember { arrayOfNulls<SceneView>(1) }
+
+    fun invalidateAtomLabels() {
+        if (!showAtomLabels || !overlaysEnabled) return
+        val overlay = labelOverlayViewRef[0] ?: return
+        val sceneView = sceneViewRef[0]
+        if (sceneView != null) {
+            sceneView.postOnAnimation { overlay.invalidate() }
+        } else {
+            overlay.postInvalidateOnAnimation()
+        }
+    }
+
     val panTarget = remember(ligand.id) { floatArrayOf(0f, 0f) }
     val twoFinger = remember { floatArrayOf(0f, 0f, 0f) }
     val twoFingerSpan = remember { floatArrayOf(0f) }
@@ -1521,6 +1515,7 @@ private fun MoleculeViewer(
                         val scroll = if (wheel != 0f) wheel else genericScroll
                         if (scroll != 0f && kotlin.math.abs(scroll) >= kotlin.math.abs(hScroll)) {
                             applyScrollZoom(scroll)
+                            invalidateAtomLabels()
                             true
                         } else {
                             false
@@ -1545,6 +1540,7 @@ private fun MoleculeViewer(
                             val ratio = (span / twoFingerSpan[0]).coerceIn(0.85f, 1.15f)
                             if (ratio != 1f) {
                                 onZoomFactorChange((zoomFactor * ratio).coerceIn(0.3f, 5.0f))
+                                invalidateAtomLabels()
                             }
                             twoFingerSpan[0] = span
 
@@ -1574,6 +1570,7 @@ private fun MoleculeViewer(
                                 panOffset.y + right.y * panDx + up.y * (-panDy),
                                 panOffset.z + right.z * panDx + up.z * (-panDy)
                             )
+                            invalidateAtomLabels()
                             true
                         } else {
                             false
@@ -1676,6 +1673,7 @@ private fun MoleculeViewer(
                     }
                     if (scroll != 0f && kotlin.math.abs(scroll) >= kotlin.math.abs(hScroll)) {
                         applyScrollZoom(scroll)
+                        invalidateAtomLabels()
                         true
                     } else {
                         false
@@ -1766,6 +1764,7 @@ private fun MoleculeViewer(
                     -focusOffset.z + panOffset.z
                 )
 
+                invalidateAtomLabels()
             }
         )
 
