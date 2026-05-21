@@ -28,6 +28,10 @@ class SecureStorage(
         return prefs.getString(KEY_LAST_USERNAME, null)
     }
 
+    fun clearLastUsername() {
+        prefs.edit().remove(KEY_LAST_USERNAME).apply()
+    }
+
     companion object {
         private const val KEY_LAST_USERNAME = "last_username"
     }
