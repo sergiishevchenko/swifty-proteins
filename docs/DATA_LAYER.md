@@ -45,3 +45,14 @@ The repository maps common failures to user-facing messages:
 - timeouts
 - HTTP errors (including 404 for missing ligand)
 - parse failures / empty bodies
+
+### UI retry
+
+Screens surface errors with a **Retry** action (strings in `res/values/strings.xml`):
+
+| Screen | Trigger | Retry action |
+|--------|---------|--------------|
+| Ligand list | `ProteinListViewModel.loadErrorMessage` (catalog load failed) | `AlertDialog` → **Retry** calls `retryLoadLigands()` |
+| Protein view | `ProteinViewViewModel.errorMessage` (CIF fetch/parse failed) | Centered error UI → **Retry** calls `retryLoad()` → `fetchLigand(ligandId)` again; **Back** pops the screen |
+
+Ligand selection navigates immediately; fetch runs once in `ProteinViewViewModel` (no duplicate prefetch from the list).

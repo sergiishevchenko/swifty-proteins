@@ -90,6 +90,25 @@ This is a security requirement: when the app returns from background, Login shou
   - Press **Home** from ligand list or 3D view, wait a few seconds, reopen the app from Recents.
   - Expected: Login is shown again.
 
+#### 3.2 Explicit logout (confirmation)
+
+- **Logout from any screen with the icon**
+  - From ligand list, favorites, compare, settings, or 3D view, tap the logout icon.
+  - Expected: dialog “Log out?” with **Log out** and **Cancel**; no navigation yet.
+
+- **Cancel**
+  - Tap **Cancel** or dismiss the dialog.
+  - Expected: stay on the same screen; session unchanged.
+
+- **Confirm**
+  - Tap **Log out**.
+  - Expected: Login screen; back stack cleared.
+
+- **Biometric after logout**
+  - Log in with password, log out via confirmation, return to Login.
+  - Type the **same** username as before.
+  - Expected: “Login with Fingerprint” available (if device supports biometrics); login works after successful scan.
+
 ---
 
 ### 3.1) Responsive UI — tablet / orientation (subject: phones & tablets)
@@ -122,11 +141,16 @@ See also general emulator notes in [Emulator setup](EMULATOR_SETUP.md).
   - Tap a ligand.
   - Expected: loading indicator appears, then navigation to 3D view when loaded.
 
-- **Network error handling**
-  - Disable network and select a ligand.
-  - Expected: user-friendly “no internet” error.
-  - Re-enable network and retry.
-  - Expected: loads successfully.
+- **Catalog load failure (if reproducible)**
+  - If the ligand list fails to load from `res/raw/ligands.txt`, an error dialog appears.
+  - Tap **Retry** → list reloads; **Dismiss** closes the dialog without leaving the screen.
+
+- **Network error handling (3D view)**
+  - Disable network and select a ligand (navigation opens protein view).
+  - Expected: user-friendly error on the protein view (not a silent hang).
+  - Tap **Retry** after re-enabling network.
+  - Expected: ligand loads successfully.
+  - Tap **Back** on error → returns to ligand list.
 
 - **404 / missing ligand**
   - If you can reproduce a 404 from the RCSB endpoint, verify the message.
