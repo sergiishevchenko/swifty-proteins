@@ -49,6 +49,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -61,6 +62,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.animation.AnimatedVisibility
@@ -350,7 +352,9 @@ fun ProteinViewScreen(
 
                 uiState.errorMessage != null -> {
                     Column(
-                        modifier = Modifier.align(Alignment.Center),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(horizontal = 24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -359,7 +363,19 @@ fun ProteinViewScreen(
                             color = MaterialTheme.colorScheme.error
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(uiState.errorMessage!!)
+                        Text(
+                            text = uiState.errorMessage!!,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Button(onClick = viewModel::retryLoad) {
+                            Text(stringResource(R.string.retry))
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(onClick = leaveScreen) {
+                            Text(stringResource(R.string.back))
+                        }
                     }
                 }
 

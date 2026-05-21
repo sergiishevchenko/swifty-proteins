@@ -72,6 +72,13 @@ class ProteinViewViewModel @Inject constructor(
         fetchLigand(ligandId)
     }
 
+    fun retryLoad() {
+        val ligandId = _uiState.value.ligandId
+        if (ligandId.isNotBlank()) {
+            fetchLigand(ligandId)
+        }
+    }
+
     private fun fetchLigand(ligandId: String) {
         viewModelScope.launch {
             _uiState.update {

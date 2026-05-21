@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -192,6 +195,24 @@ fun ProteinListScreen(
             }
 
         }
+    }
+
+    if (uiState.loadErrorMessage != null) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissLoadError,
+            title = { Text(stringResource(R.string.load_error_title)) },
+            text = { Text(uiState.loadErrorMessage!!) },
+            confirmButton = {
+                Button(onClick = viewModel::retryLoadLigands) {
+                    Text(stringResource(R.string.retry))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissLoadError) {
+                    Text(stringResource(R.string.dismiss))
+                }
+            }
+        )
     }
 }
 

@@ -19,6 +19,7 @@ data class ProteinListUiState(
     val filteredLigands: List<String> = emptyList(),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
+    val loadErrorMessage: String? = null,
     val navigateToLigand: String? = null,
     val favoriteIds: Set<String> = emptySet(),
     val cachedInfo: Map<String, LigandRepository.LigandCacheInfo> = emptyMap()
@@ -42,16 +43,33 @@ class ProteinListViewModel @Inject constructor(
 
     private fun loadLigands() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val ids = ligandRepository.getLigandIds()
-            _uiState.update {
-                it.copy(
-                    allLigands = ids,
-                    filteredLigands = ids,
-                    isLoading = false
-                )
+            _uiState.update { it.copy(isLoading = true, loadErrorMessage = null) }
+            try {
+                val ids = ligandRepository.getLigandIds()
+                _uiState.update {
+                    it.copy(
+                        allLigands = ids,
+                        filteredLigands = ids,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        loadErrorMessage = e.localizedMessage ?: "Failed to load ligand list"
+                    )
+                }
             }
         }
+    }
+
+    fun retryLoadLigands() {
+        loadLigands()
+    }
+
+    fun dismissLoadError() {
+        _uiState.update { it.copy(loadErrorMessage = null) }
     }
 
     fun ensureCachedInfo(ligandId: String) {
