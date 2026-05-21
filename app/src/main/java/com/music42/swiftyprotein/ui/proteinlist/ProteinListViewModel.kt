@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 data class ProteinListUiState(
@@ -30,11 +32,12 @@ class ProteinListViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ProteinListUiState())
     val uiState: StateFlow<ProteinListUiState> = _uiState.asStateFlow()
+    private val cacheInfoInFlight = mutableSetOf<String>()
+    private val cacheInfoMutex = Mutex()
 
     init {
         loadLigands()
         observeFavorites()
-        loadCachedInfo()
     }
 
     private fun loadLigands() {
@@ -51,14 +54,26 @@ class ProteinListViewModel @Inject constructor(
         }
     }
 
-    private fun loadCachedInfo() {
+    fun ensureCachedInfo(ligandId: String) {
+        if (_uiState.value.cachedInfo.containsKey(ligandId)) return
         viewModelScope.launch {
-            val ids = ligandRepository.getLigandIds()
-            val info = mutableMapOf<String, LigandRepository.LigandCacheInfo>()
-            for (id in ids) {
-                ligandRepository.getCachedInfo(id)?.let { info[id] = it }
+            val shouldLoad = cacheInfoMutex.withLock {
+                if (ligandId in _uiState.value.cachedInfo || ligandId in cacheInfoInFlight) {
+                    false
+                } else {
+                    cacheInfoInFlight.add(ligandId)
+                    true
+                }
             }
-            _uiState.update { it.copy(cachedInfo = info) }
+            if (!shouldLoad) return@launch
+            try {
+                val info = ligandRepository.getCachedInfo(ligandId) ?: return@launch
+                _uiState.update { state ->
+                    state.copy(cachedInfo = state.cachedInfo + (ligandId to info))
+                }
+            } finally {
+                cacheInfoMutex.withLock { cacheInfoInFlight.remove(ligandId) }
+            }
         }
     }
 

@@ -153,6 +153,9 @@ fun ProteinListScreen(
                             items = uiState.filteredLigands,
                             key = { it }
                         ) { ligandId ->
+                            LaunchedEffect(ligandId) {
+                                viewModel.ensureCachedInfo(ligandId)
+                            }
                             val info = uiState.cachedInfo[ligandId]
                             LigandItem(
                                 ligandId = ligandId,
