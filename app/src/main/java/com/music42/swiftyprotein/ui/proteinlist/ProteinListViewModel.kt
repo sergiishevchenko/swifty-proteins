@@ -17,8 +17,6 @@ data class ProteinListUiState(
     val filteredLigands: List<String> = emptyList(),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
-    val loadingLigandId: String? = null,
-    val errorMessage: String? = null,
     val navigateToLigand: String? = null,
     val favoriteIds: Set<String> = emptySet(),
     val cachedInfo: Map<String, LigandRepository.LigandCacheInfo> = emptyMap()
@@ -96,34 +94,7 @@ class ProteinListViewModel @Inject constructor(
     }
 
     fun onLigandClick(ligandId: String) {
-        val state = _uiState.value
-        if (state.loadingLigandId != null) return
-
-        _uiState.update {
-            it.copy(
-                loadingLigandId = ligandId,
-                errorMessage = null,
-                navigateToLigand = null
-            )
-        }
-
-        
-        viewModelScope.launch {
-            val result = ligandRepository.fetchLigand(ligandId)
-            result.fold(
-                onSuccess = {
-                    _uiState.update { it.copy(loadingLigandId = null, navigateToLigand = ligandId) }
-                },
-                onFailure = { e ->
-                    _uiState.update {
-                        it.copy(
-                            loadingLigandId = null,
-                            errorMessage = e.localizedMessage ?: "Unknown error"
-                        )
-                    }
-                }
-            )
-        }
+        _uiState.update { it.copy(navigateToLigand = ligandId) }
     }
 
     fun onNavigated() {
@@ -136,7 +107,4 @@ class ProteinListViewModel @Inject constructor(
         }
     }
 
-    fun dismissError() {
-        _uiState.update { it.copy(errorMessage = null) }
-    }
 }

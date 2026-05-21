@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,7 +33,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -167,7 +165,6 @@ fun ProteinListScreen(
                                         }
                                     }.ifEmpty { null }
                                 },
-                                isLoading = uiState.loadingLigandId == ligandId,
                                 isFavorite = uiState.favoriteIds.contains(ligandId),
                                 onToggleFavorite = { viewModel.onToggleFavorite(ligandId) },
                                 onClick = { viewModel.onLigandClick(ligandId) }
@@ -189,35 +186,7 @@ fun ProteinListScreen(
                 )
             }
 
-            if (uiState.loadingLigandId != null) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(modifier = Modifier.size(48.dp))
-                        Text(
-                            text = "Loading ${uiState.loadingLigandId ?: ""}...",
-                            modifier = Modifier.padding(top = 12.dp),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
         }
-    }
-
-    if (uiState.errorMessage != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissError,
-            title = { Text("Error") },
-            text = { Text(uiState.errorMessage!!) },
-            confirmButton = {
-                TextButton(onClick = viewModel::dismissError) {
-                    Text("OK")
-                }
-            }
-        )
     }
 }
 
@@ -225,13 +194,12 @@ fun ProteinListScreen(
 private fun LigandItem(
     ligandId: String,
     subtitle: String?,
-    isLoading: Boolean,
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit,
     onClick: () -> Unit
 ) {
     val containerColor by animateColorAsState(
-        targetValue = if (isLoading) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
+        targetValue = MaterialTheme.colorScheme.surface,
         animationSpec = tween(durationMillis = 220),
         label = "ligand_container"
     )
@@ -250,7 +218,7 @@ private fun LigandItem(
         modifier = Modifier
             .fillMaxWidth()
             .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
-            .clickable(enabled = !isLoading, onClick = onClick)
+            .clickable(onClick = onClick)
             .animateContentSize(),
         colors = CardDefaults.cardColors(
             containerColor = containerColor
@@ -276,12 +244,6 @@ private fun LigandItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(22.dp),
-                    strokeWidth = 2.dp
-                )
             }
             IconButton(onClick = onToggleFavorite) {
                 Icon(
