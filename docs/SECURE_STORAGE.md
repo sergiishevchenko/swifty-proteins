@@ -16,6 +16,7 @@ Injected via Hilt in [`AppModule`](../app/src/main/java/com/music42/swiftyprotei
 |--------|-------------|
 | `setLastUsername(username)` | Writes `last_username` to encrypted prefs |
 | `getLastUsername()` | Reads `last_username`, or `null` if unset |
+| `clearLastUsername()` | Removes `last_username` (called on explicit Logout) |
 
 Passwords are **not** stored here; they live as bcrypt hashes in Room (`User.passwordHash`). See [`AUTH.md`](AUTH.md).
 
