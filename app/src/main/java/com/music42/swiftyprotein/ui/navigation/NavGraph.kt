@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -29,6 +32,20 @@ fun SwiftyProteinNavHost(
 ) {
     val sessionViewModel: SessionViewModel = hiltViewModel()
     val username by sessionViewModel.username.collectAsState()
+    var showLogoutConfirm by remember { mutableStateOf(false) }
+
+    val onLogoutRequest: () -> Unit = { showLogoutConfirm = true }
+    val onLogoutConfirmed: () -> Unit = {
+        showLogoutConfirm = false
+        sessionViewModel.logout()
+        navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }
+    }
+
+    LogoutConfirmDialog(
+        visible = showLogoutConfirm,
+        onDismiss = { showLogoutConfirm = false },
+        onConfirm = onLogoutConfirmed,
+    )
 
     LaunchedEffect(shouldShowLogin) {
         if (shouldShowLogin) {
@@ -83,10 +100,7 @@ fun SwiftyProteinNavHost(
                     navController.navigate(Screen.Settings.route)
                 },
                 currentUsername = username,
-                onLogout = {
-                    sessionViewModel.logout()
-                    navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }
-                }
+                onLogout = onLogoutRequest
             )
         }
 
@@ -100,10 +114,7 @@ fun SwiftyProteinNavHost(
                     navController.navigate(Screen.Compare.createRoute(a, b))
                 },
                 currentUsername = username,
-                onLogout = {
-                    sessionViewModel.logout()
-                    navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }
-                }
+                onLogout = onLogoutRequest
             )
         }
 
@@ -117,10 +128,7 @@ fun SwiftyProteinNavHost(
             CompareScreen(
                 onBack = { navController.popBackStack() },
                 currentUsername = username,
-                onLogout = {
-                    sessionViewModel.logout()
-                    navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }
-                }
+                onLogout = onLogoutRequest
             )
         }
 
@@ -128,10 +136,7 @@ fun SwiftyProteinNavHost(
             SettingsScreen(
                 onBack = { navController.popBackStack() },
                 currentUsername = username,
-                onLogout = {
-                    sessionViewModel.logout()
-                    navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }
-                }
+                onLogout = onLogoutRequest
             )
         }
 
@@ -144,10 +149,7 @@ fun SwiftyProteinNavHost(
                 ligandId = ligandId,
                 onBack = { navController.popBackStack() },
                 currentUsername = username,
-                onLogout = {
-                    sessionViewModel.logout()
-                    navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }
-                }
+                onLogout = onLogoutRequest
             )
         }
     }
