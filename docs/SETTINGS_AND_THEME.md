@@ -39,6 +39,8 @@ Stored as `show_hydrogens_by_default` in DataStore. When enabled, the 3D viewer 
 
 `onboarding_completed` is reset to `false` on registration so new users see the walkthrough. After completion, the flag is set and onboarding is skipped on subsequent logins.
 
+**Replay from Settings:** «Show onboarding again» calls `SettingsViewModel.replayOnboarding()` (sets `onboarding_completed` to `false`), then navigates to `OnboardingScreen` with Settings removed from the back stack. Completing the tour sets the flag back to `true` and returns to the ligand list.
+
 ## Logout
 
 The Settings top bar (and the same pattern on ligand list, favorites, compare, and protein view) shows the current username and a logout icon.

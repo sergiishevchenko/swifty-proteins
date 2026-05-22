@@ -36,4 +36,12 @@
     <string name="logout_confirm_message">You will need to log in again to continue.</string>
     <string name="logout_confirm">Log out</string>
     <string name="cancel">Cancel</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_default_vis_mode">Default visualization mode</string>
+    <string name="settings_hydrogens_title">Show hydrogens by default</string>
+    <string name="settings_hydrogens_subtitle">Display hydrogen atoms when opening a ligand</string>
+    <string name="settings_onboarding_title">Onboarding</string>
+    <string name="settings_onboarding_subtitle">Show the welcome tour again</string>
+    <string name="settings_onboarding_button">Show onboarding again</string>
 </resources>

@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,11 +25,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.music42.swiftyprotein.R
 import com.music42.swiftyprotein.data.settings.ThemeMode
 import com.music42.swiftyprotein.ui.proteinview.VisualizationMode
 
@@ -36,6 +38,7 @@ import com.music42.swiftyprotein.ui.proteinview.VisualizationMode
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onShowOnboarding: () -> Unit,
     currentUsername: String?,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
@@ -46,7 +49,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -81,7 +84,7 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Text(
-                text = "Theme",
+                text = stringResource(R.string.settings_theme),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -106,7 +109,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(18.dp))
 
             Text(
-                text = "Default visualization mode",
+                text = stringResource(R.string.settings_default_vis_mode),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -145,7 +148,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(18.dp))
 
             Text(
-                text = "Show hydrogens by default",
+                text = stringResource(R.string.settings_hydrogens_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -156,7 +159,7 @@ fun SettingsScreen(
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Display hydrogen atoms when opening a ligand",
+                    text = stringResource(R.string.settings_hydrogens_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f)
                 )
@@ -164,6 +167,27 @@ fun SettingsScreen(
                     checked = settings.showHydrogensByDefault,
                     onCheckedChange = { viewModel.setShowHydrogensByDefault(it) }
                 )
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Text(
+                text = stringResource(R.string.settings_onboarding_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.settings_onboarding_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = { viewModel.replayOnboarding(onShowOnboarding) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.settings_onboarding_button))
             }
         }
     }

@@ -36,6 +36,13 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { settingsRepository.setOnboardingCompleted(completed) }
     }
 
+    fun replayOnboarding(onReady: () -> Unit) {
+        viewModelScope.launch {
+            settingsRepository.setOnboardingCompleted(false)
+            onReady()
+        }
+    }
+
     fun setShowHydrogensByDefault(show: Boolean) {
         viewModelScope.launch { settingsRepository.setShowHydrogensByDefault(show) }
     }

@@ -135,6 +135,11 @@ fun SwiftyProteinNavHost(
         composable(Screen.Settings.route) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
+                onShowOnboarding = {
+                    navController.navigate(Screen.Onboarding.route) {
+                        popUpTo(Screen.Settings.route) { inclusive = true }
+                    }
+                },
                 currentUsername = username,
                 onLogout = onLogoutRequest
             )
