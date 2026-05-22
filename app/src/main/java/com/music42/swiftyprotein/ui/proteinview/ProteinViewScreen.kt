@@ -48,7 +48,7 @@ import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -279,7 +279,10 @@ fun ProteinViewScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { leaveScreen() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 },
                 actions = {
@@ -293,7 +296,10 @@ fun ProteinViewScreen(
                         )
                     }
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.Logout, contentDescription = "Logout")
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = stringResource(R.string.cd_logout)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -798,7 +804,7 @@ fun ProteinViewScreen(
                                         ) {
                                             Icon(
                                                 Icons.Default.Add,
-                                                contentDescription = "Zoom in",
+                                                contentDescription = stringResource(R.string.cd_zoom_in),
                                                 tint = MaterialTheme.colorScheme.onPrimary
                                             )
                                         }
@@ -816,7 +822,7 @@ fun ProteinViewScreen(
                                         ) {
                                             Icon(
                                                 Icons.Default.Remove,
-                                                contentDescription = "Zoom out",
+                                                contentDescription = stringResource(R.string.cd_zoom_out),
                                                 tint = MaterialTheme.colorScheme.onPrimary
                                             )
                                         }
@@ -837,7 +843,7 @@ fun ProteinViewScreen(
                                         ) {
                                             Icon(
                                                 Icons.Filled.Refresh,
-                                                contentDescription = "Reset view",
+                                                contentDescription = stringResource(R.string.cd_reset_view),
                                                 tint = MaterialTheme.colorScheme.onPrimary
                                             )
                                         }
@@ -862,7 +868,7 @@ fun ProteinViewScreen(
                                         ) {
                                             Icon(
                                                 Icons.Default.Add,
-                                                contentDescription = "Zoom in",
+                                                contentDescription = stringResource(R.string.cd_zoom_in),
                                                 tint = MaterialTheme.colorScheme.onPrimary
                                             )
                                         }
@@ -881,7 +887,7 @@ fun ProteinViewScreen(
                                         ) {
                                             Icon(
                                                 Icons.Default.Remove,
-                                                contentDescription = "Zoom out",
+                                                contentDescription = stringResource(R.string.cd_zoom_out),
                                                 tint = MaterialTheme.colorScheme.onPrimary
                                             )
                                         }
@@ -903,7 +909,7 @@ fun ProteinViewScreen(
                                         ) {
                                             Icon(
                                                 Icons.Filled.Refresh,
-                                                contentDescription = "Reset view",
+                                                contentDescription = stringResource(R.string.cd_reset_view),
                                                 tint = MaterialTheme.colorScheme.onPrimary
                                             )
                                         }

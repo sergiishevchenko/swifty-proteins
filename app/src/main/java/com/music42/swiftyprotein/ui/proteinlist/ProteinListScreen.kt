@@ -22,7 +22,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -90,10 +90,16 @@ fun ProteinListScreen(
                 title = { Text(stringResource(R.string.ligands_title)) },
                 actions = {
                     IconButton(onClick = onOpenFavorites) {
-                        Icon(Icons.Default.Star, contentDescription = "Favorites")
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = stringResource(R.string.cd_favorites)
+                        )
                     }
                     IconButton(onClick = onOpenSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.cd_settings)
+                        )
                     }
                     if (!currentUsername.isNullOrBlank()) {
                         Text(
@@ -105,7 +111,10 @@ fun ProteinListScreen(
                         )
                     }
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.Logout, contentDescription = "Logout")
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = stringResource(R.string.cd_logout)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -129,12 +138,15 @@ fun ProteinListScreen(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text(stringResource(R.string.search_hint)) },
                     leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
+                        Icon(Icons.Default.Search, contentDescription = stringResource(R.string.cd_search))
                     },
                     trailingIcon = {
                         if (uiState.searchQuery.isNotEmpty()) {
                             IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear")
+                                Icon(
+                                    Icons.Default.Clear,
+                                    contentDescription = stringResource(R.string.cd_clear_search)
+                                )
                             }
                         }
                     },
@@ -193,7 +205,7 @@ fun ProteinListScreen(
 
             if (uiState.filteredLigands.isEmpty() && uiState.searchQuery.isNotEmpty() && !uiState.isLoading) {
                 Text(
-                    text = "No ligands found for \"${uiState.searchQuery}\"",
+                    text = stringResource(R.string.search_no_results, uiState.searchQuery),
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(16.dp),
@@ -282,7 +294,9 @@ private fun LigandItem(
             IconButton(onClick = onToggleFavorite) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription = if (isFavorite) "Unfavorite" else "Favorite",
+                    contentDescription = stringResource(
+                        if (isFavorite) R.string.cd_unfavorite else R.string.cd_favorite
+                    ),
                     tint = starTint,
                     modifier = Modifier.graphicsLayer {
                         scaleX = starScale

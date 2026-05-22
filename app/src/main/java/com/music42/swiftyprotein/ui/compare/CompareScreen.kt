@@ -16,7 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Card
@@ -43,9 +43,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.music42.swiftyprotein.R
 import com.music42.swiftyprotein.data.model.Atom
 import com.music42.swiftyprotein.data.model.Ligand
 import com.music42.swiftyprotein.ui.proteinview.VisualizationMode
@@ -71,10 +73,13 @@ fun CompareScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Compare") },
+                title = { Text(stringResource(R.string.compare_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 },
                 actions = {
@@ -88,7 +93,10 @@ fun CompareScreen(
                         )
                     }
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.Logout, contentDescription = "Logout")
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = stringResource(R.string.cd_logout)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -114,7 +122,10 @@ fun CompareScreen(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Failed to load comparison", color = MaterialTheme.colorScheme.error)
+                        Text(
+                            stringResource(R.string.compare_load_failed),
+                            color = MaterialTheme.colorScheme.error
+                        )
                         Text(uiState.errorMessage ?: "")
                     }
                 }
@@ -203,7 +214,7 @@ private fun ComparePanel(
                             ) {
                                 Icon(
                                     Icons.Filled.Add,
-                                    contentDescription = "Zoom in",
+                                    contentDescription = stringResource(R.string.cd_zoom_in),
                                     tint = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
@@ -223,7 +234,7 @@ private fun ComparePanel(
                             ) {
                                 Icon(
                                     Icons.Filled.Remove,
-                                    contentDescription = "Zoom out",
+                                    contentDescription = stringResource(R.string.cd_zoom_out),
                                     tint = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
@@ -246,7 +257,7 @@ private fun ComparePanel(
                             ) {
                                 Icon(
                                     Icons.Filled.Refresh,
-                                    contentDescription = "Reset view",
+                                    contentDescription = stringResource(R.string.cd_reset_view),
                                     tint = MaterialTheme.colorScheme.onPrimary
                                 )
                             }

@@ -20,7 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.OpenInNew
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,9 +45,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.music42.swiftyprotein.R
 import com.music42.swiftyprotein.ui.common.FavoriteSnackbarEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,10 +73,13 @@ fun FavoritesScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Favorites") },
+                title = { Text(stringResource(R.string.favorites_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 },
                 actions = {
@@ -88,7 +93,7 @@ fun FavoritesScreen(
                     ) {
                         Icon(
                             Icons.Default.CompareArrows,
-                            contentDescription = "Compare",
+                            contentDescription = stringResource(R.string.cd_compare),
                             tint = if (canCompare) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -102,7 +107,10 @@ fun FavoritesScreen(
                         )
                     }
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.Logout, contentDescription = "Logout")
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = stringResource(R.string.cd_logout)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -121,7 +129,7 @@ fun FavoritesScreen(
         ) {
             if (favorites.isEmpty()) {
                 Text(
-                    text = "No favorites yet.",
+                    text = stringResource(R.string.favorites_empty),
                     modifier = Modifier.align(Alignment.Center),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -176,7 +184,7 @@ fun FavoritesScreen(
                                     )
                                     if (selected) {
                                         Text(
-                                            text = "Selected for compare",
+                                            text = stringResource(R.string.favorites_selected_for_compare),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                                         )
@@ -185,7 +193,7 @@ fun FavoritesScreen(
                                 IconButton(onClick = { viewModel.onToggleFavorite(ligandId) }) {
                                     Icon(
                                         Icons.Default.Star,
-                                        contentDescription = "Remove from favorites",
+                                        contentDescription = stringResource(R.string.cd_remove_from_favorites),
                                         tint = accentColor,
                                         modifier = Modifier.graphicsLayer {
                                             scaleX = starScale
@@ -196,7 +204,7 @@ fun FavoritesScreen(
                                 IconButton(onClick = { onLigandSelected(ligandId) }) {
                                     Icon(
                                         Icons.Default.OpenInNew,
-                                        contentDescription = "Open",
+                                        contentDescription = stringResource(R.string.cd_open_ligand),
                                         tint = accentColor
                                     )
                                 }
