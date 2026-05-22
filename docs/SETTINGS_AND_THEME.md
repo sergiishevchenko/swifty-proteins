@@ -41,6 +41,10 @@ Stored as `show_hydrogens_by_default` in DataStore. When enabled, the 3D viewer 
 
 **Replay from Settings:** «Show onboarding again» calls `SettingsViewModel.replayOnboarding()` (sets `onboarding_completed` to `false`), then navigates to `OnboardingScreen` with Settings removed from the back stack. Completing the tour sets the flag back to `true` and returns to the ligand list.
 
+## CIF cache
+
+Downloaded ligand CIF files live under `filesDir/cif_cache/`. Settings shows the total cache size and a **Clear cache** action that deletes the directory. `LigandRepository.cacheCleared` notifies `ProteinListViewModel` to reset in-memory `cachedInfo` so list subtitles disappear until files are downloaded again.
+
 ## Logout
 
 The Settings top bar (and the same pattern on ligand list, favorites, compare, and protein view) shows the current username and a logout icon.
