@@ -39,6 +39,16 @@ class ProteinListViewModel @Inject constructor(
     init {
         loadLigands()
         observeFavorites()
+        observeCacheCleared()
+    }
+
+    private fun observeCacheCleared() {
+        viewModelScope.launch {
+            ligandRepository.cacheCleared.collect {
+                cacheInfoMutex.withLock { cacheInfoInFlight.clear() }
+                _uiState.update { it.copy(cachedInfo = emptyMap()) }
+            }
+        }
     }
 
     private fun loadLigands() {

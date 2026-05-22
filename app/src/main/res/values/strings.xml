@@ -44,4 +44,9 @@
     <string name="settings_onboarding_title">Onboarding</string>
     <string name="settings_onboarding_subtitle">Show the welcome tour again</string>
     <string name="settings_onboarding_button">Show onboarding again</string>
+    <string name="settings_cache_title">CIF cache</string>
+    <string name="settings_cache_subtitle">Downloaded ligand structures stored on device</string>
+    <string name="settings_cache_size">Cache size: %1$s</string>
+    <string name="settings_cache_clear">Clear cache</string>
+    <string name="settings_cache_clearing">Clearing…</string>
 </resources>

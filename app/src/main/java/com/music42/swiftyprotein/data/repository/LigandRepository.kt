@@ -10,6 +10,9 @@ import java.io.File
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,10 +25,31 @@ class LigandRepository @Inject constructor(
 
     private var ligandIds: List<String>? = null
 
+    private val _cacheCleared = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val cacheCleared: SharedFlow<Unit> = _cacheCleared.asSharedFlow()
+
+    private fun cifCacheDir(): File = File(context.filesDir, "cif_cache")
+
     private fun cifCacheFile(ligandId: String): File {
         val safe = ligandId.trim().uppercase()
             .replace(Regex("[^A-Z0-9_-]"), "_")
-        return File(context.filesDir, "cif_cache/$safe.cif")
+        return File(cifCacheDir(), "$safe.cif")
+    }
+
+    suspend fun getCifCacheSizeBytes(): Long = withContext(Dispatchers.IO) {
+        val dir = cifCacheDir()
+        if (!dir.exists()) return@withContext 0L
+        dir.walkTopDown()
+            .filter { it.isFile }
+            .sumOf { it.length() }
+    }
+
+    suspend fun clearCifCache() = withContext(Dispatchers.IO) {
+        val dir = cifCacheDir()
+        if (dir.exists()) {
+            dir.deleteRecursively()
+        }
+        _cacheCleared.tryEmit(Unit)
     }
 
     suspend fun getLigandIds(): List<String> = withContext(Dispatchers.IO) {

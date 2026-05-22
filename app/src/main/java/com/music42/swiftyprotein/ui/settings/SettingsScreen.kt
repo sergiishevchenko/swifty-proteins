@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -44,7 +45,13 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsState()
+    val cifCacheSizeBytes by viewModel.cifCacheSizeBytes.collectAsState()
+    val isClearingCifCache by viewModel.isClearingCifCache.collectAsState()
     val accentColor = MaterialTheme.colorScheme.primary
+
+    LaunchedEffect(Unit) {
+        viewModel.refreshCifCacheSize()
+    }
 
     Scaffold(
         topBar = {
@@ -189,6 +196,53 @@ fun SettingsScreen(
             ) {
                 Text(stringResource(R.string.settings_onboarding_button))
             }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Text(
+                text = stringResource(R.string.settings_cache_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.settings_cache_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(
+                    R.string.settings_cache_size,
+                    formatCacheSize(cifCacheSizeBytes)
+                ),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = viewModel::clearCifCache,
+                enabled = !isClearingCifCache && cifCacheSizeBytes > 0L,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    if (isClearingCifCache) {
+                        stringResource(R.string.settings_cache_clearing)
+                    } else {
+                        stringResource(R.string.settings_cache_clear)
+                    }
+                )
+            }
         }
+    }
+}
+
+private fun formatCacheSize(bytes: Long): String {
+    if (bytes <= 0L) return "0 B"
+    val kb = 1024.0
+    val mb = kb * 1024.0
+    return when {
+        bytes >= mb -> "%.1f MB".format(bytes / mb)
+        bytes >= kb -> "%.1f KB".format(bytes / kb)
+        else -> "$bytes B"
     }
 }
