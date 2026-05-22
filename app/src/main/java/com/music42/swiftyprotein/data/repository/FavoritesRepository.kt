@@ -13,11 +13,13 @@ class FavoritesRepository @Inject constructor(
     fun observeFavorites(): Flow<List<FavoriteLigand>> = favoritesDao.observeFavorites()
     fun observeFavoriteIds(): Flow<List<String>> = favoritesDao.observeFavoriteIds()
 
-    suspend fun toggleFavorite(ligandId: String) {
-        if (favoritesDao.isFavorite(ligandId)) {
+    suspend fun toggleFavorite(ligandId: String): FavoriteToggleAction {
+        return if (favoritesDao.isFavorite(ligandId)) {
             favoritesDao.removeByLigandId(ligandId)
+            FavoriteToggleAction.Removed
         } else {
             favoritesDao.add(FavoriteLigand(ligandId = ligandId))
+            FavoriteToggleAction.Added
         }
     }
 }

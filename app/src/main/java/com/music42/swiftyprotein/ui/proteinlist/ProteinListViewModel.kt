@@ -2,11 +2,15 @@ package com.music42.swiftyprotein.ui.proteinlist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.music42.swiftyprotein.data.repository.FavoriteToggleAction
 import com.music42.swiftyprotein.data.repository.FavoritesRepository
 import com.music42.swiftyprotein.data.repository.LigandRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,6 +37,9 @@ class ProteinListViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ProteinListUiState())
     val uiState: StateFlow<ProteinListUiState> = _uiState.asStateFlow()
+
+    private val _favoriteSnackbar = MutableSharedFlow<FavoriteToggleAction>(extraBufferCapacity = 1)
+    val favoriteSnackbar: SharedFlow<FavoriteToggleAction> = _favoriteSnackbar.asSharedFlow()
     private val cacheInfoInFlight = mutableSetOf<String>()
     private val cacheInfoMutex = Mutex()
 
@@ -146,7 +153,8 @@ class ProteinListViewModel @Inject constructor(
 
     fun onToggleFavorite(ligandId: String) {
         viewModelScope.launch {
-            favoritesRepository.toggleFavorite(ligandId)
+            val action = favoritesRepository.toggleFavorite(ligandId)
+            _favoriteSnackbar.emit(action)
         }
     }
 

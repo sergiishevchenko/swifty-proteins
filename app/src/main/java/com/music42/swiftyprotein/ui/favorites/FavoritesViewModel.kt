@@ -2,11 +2,15 @@ package com.music42.swiftyprotein.ui.favorites
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.music42.swiftyprotein.data.repository.FavoriteToggleAction
 import com.music42.swiftyprotein.data.repository.FavoritesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -20,9 +24,13 @@ class FavoritesViewModel @Inject constructor(
             .map { list -> list.map { it.ligandId } }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    private val _favoriteSnackbar = MutableSharedFlow<FavoriteToggleAction>(extraBufferCapacity = 1)
+    val favoriteSnackbar: SharedFlow<FavoriteToggleAction> = _favoriteSnackbar.asSharedFlow()
+
     fun onToggleFavorite(ligandId: String) {
         viewModelScope.launch {
-            favoritesRepository.toggleFavorite(ligandId)
+            val action = favoritesRepository.toggleFavorite(ligandId)
+            _favoriteSnackbar.emit(action)
         }
     }
 }
