@@ -19,6 +19,10 @@ Allow users to save ligand IDs locally and revisit them quickly.
 
 Favorites are stored in **Room (SQLite)** as ligand IDs.
 
+### Toggle feedback
+
+Tapping the star on the ligand list or favorites screen shows a Material **Snackbar**: “Added to favorites” or “Removed from favorites”. `FavoritesRepository.toggleFavorite()` returns `FavoriteToggleAction`; ViewModels emit it via `SharedFlow` and `FavoriteSnackbarEffect` displays the message.
+
 ## Compare
 
 ### Goal
