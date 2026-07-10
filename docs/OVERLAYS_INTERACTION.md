@@ -6,6 +6,8 @@ This project uses several UI overlays on top of a SceneView `SurfaceView`.
 
 - [`app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewScreen.kt)
 - [`app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewViewModel.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewViewModel.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/proteinview/MoleculeViewer.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/proteinview/MoleculeViewer.kt)
+- [`app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewToolbar.kt`](../app/src/main/java/com/music42/swiftyprotein/ui/proteinview/ProteinViewToolbar.kt)
 
 ## Why `Popup` is used
 
@@ -47,3 +49,11 @@ For consistent overlay rendering above the 3D surface, the app uses Compose `Pop
 
 - "MEASURE MODE", "LABELS MODE", and "Switch to Balls mode" appear as pill banners at the top.
 - Styled consistently (app icon + text).
+
+## Animation toggle
+
+- Toggle via the **Play / Stop** button in the top-right action row (between Record and Measure).
+- **Play** starts smooth Y-axis rotation of the loaded model; **Stop** (highlighted button) pauses it.
+- Works in all visualization modes.
+- Pinch zoom, two-finger pan, scroll zoom, and manual camera orbit remain usable during animation.
+- Leaving the protein view or destroying the ViewModel stops animation automatically.

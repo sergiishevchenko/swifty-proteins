@@ -15,7 +15,8 @@
 
 ## Video recording
 
-- Uses **MediaProjection** + **MediaRecorder** to record the screen to MP4 (~5 s with auto-rotate).
+- Uses **MediaProjection** + **MediaRecorder** to record the screen to MP4 (~5 s).
+- While recording, the 3D view applies a **camera auto-orbit** (horizontal circle around the scene center) so the exported video shows motion. This is separate from the user **Animation** toggle, which rotates the model node itself.
 - Runs a **foreground service** (`MediaProjectionForegroundService`, type `mediaProjection`) while recording; Android 13+ may prompt for notification permission.
 - Saves into `cacheDir/shared_videos/`.
 - After recording finishes, the app shares the resulting MP4 via `FileProvider`.

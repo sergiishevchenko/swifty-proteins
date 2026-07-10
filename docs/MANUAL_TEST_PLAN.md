@@ -248,6 +248,28 @@ Note: measurement/labels are intended only for Ball-and-stick mode.
 - **Double-tap an atom**
   - Expected: camera recenters (smooth animation), selected atom becomes center focus.
 
+#### 5.10 Model animation
+
+- **Start animation**
+  - Tap the **Play** button in the top-right action row.
+  - Expected: the model rotates smoothly and continuously around the vertical axis.
+
+- **Gestures during animation**
+  - With animation running, pinch zoom, two-finger pan, and manual orbit.
+  - Expected: all gestures still work; rotation does not reset or stutter.
+
+- **Stop animation**
+  - Tap **Stop** (highlighted).
+  - Expected: rotation stops immediately; model remains at the last orientation.
+
+- **Reset view**
+  - Tap reset (refresh icon) on the left while animation is off or on.
+  - Expected: camera, pan, and model rotation return to defaults.
+
+- **Leave screen**
+  - Enable animation, press Back to leave the 3D view, reopen the same ligand.
+  - Expected: animation is off on return (no background rotation / leak).
+
 ---
 
 ### 6) Sharing (mandatory + bonus)
@@ -269,7 +291,7 @@ Best verified on a real device (emulators can be flaky).
 - **Record**
   - Start recording.
   - Accept the system MediaProjection prompt.
-  - Wait for the app to finish (auto-rotate video).
+  - Wait for the app to finish (camera auto-orbit during recording).
   - Expected: an MP4 is produced and share sheet opens.
 
 - **Cancel permission**

@@ -137,7 +137,7 @@ Main user flow:
 3. User searches/selects a ligand from local list.
 4. App downloads ligand data from RCSB.
 5. App parses molecular data and renders interactive 3D scene.
-6. User explores model (zoom/rotate/mode switch), taps atoms/bonds for tooltip, measures distances/angles, toggles labels, and can share screenshots/videos.
+6. User explores model (zoom/rotate/mode switch), toggles auto-animation, taps atoms/bonds for tooltip, measures distances/angles, toggles labels, and can share screenshots/videos.
 
 ## Documentation
 
@@ -198,6 +198,7 @@ app/src/main/java/com/music42/swiftyprotein/
 │   ├── proteinlist/
 │   ├── proteinview/
 │   │   ├── MoleculeSceneBuilder.kt
+│   │   ├── MoleculeViewer.kt
 │   │   ├── ProteinViewScreen.kt
 │   │   ├── ProteinViewViewModel.kt
 │   │   └── MediaProjectionForegroundService.kt
@@ -259,6 +260,7 @@ app/src/main/java/com/music42/swiftyprotein/
 - Dismiss tooltip by tapping elsewhere.
 - Zoom controls (`+` / `-`) and pointer scroll zoom.
 - Camera orbit/rotate interactions.
+- **Animation** toggle (Play / Stop): continuous smooth rotation of the loaded model around the vertical (Y) axis; gestures (zoom, pan, manual orbit) keep working; orientation is preserved when stopped.
 - Measurement mode (Balls only): 2 atoms → distance (Å); 2 bonds (shared atom) → angle (°).
 - Atom labels (Balls only): overlay labels that track atoms while moving/zooming.
 - Large-molecule handling: adaptive sphere resolution (LOD) + warning + automatic downgrade for heavy scenes.

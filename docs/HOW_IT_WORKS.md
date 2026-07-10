@@ -214,7 +214,7 @@ To avoid a flash on fast cache hits, success is not shown until at least ~**350 
 ### What Can Change on a Loaded Model (Without Re-Fetching CIF)
 
 - visualization mode and hydrogens → **3D node rebuild**;
-- atom labels, atom/bond selection, measurements, zoom, auto-rotate, sharing — **on top of** the loaded Ligand; RCSB data is untouched.
+- atom labels, atom/bond selection, measurements, zoom, model animation, sharing — **on top of** the loaded Ligand; RCSB data is untouched.
 
 ---
 
@@ -274,7 +274,15 @@ Each cylinder also has a mesh for **tap** (bond selection and length hint).
 
 Over all visible atoms, a **bounding sphere radius** is estimated (distance from center plus visual atom radius for the mode). The camera is placed at ~4.5× that radius at a fixed angle, looking at the center. The user then changes distance with pinch, ± buttons, or mouse wheel on the emulator, roughly within 0.2×…6× of the base distance.
 
-**Auto-rotate** slowly orbits the molecule.
+### Model animation
+
+The **Animation** button (Play / Stop in the action row) rotates the existing **parent node** around the vertical axis at ~30°/s. Rotation is updated in the SceneView `onFrame` callback using frame delta time, so motion stays smooth regardless of FPS. Stopping animation leaves the model at its current angle; **Reset view** also clears rotation.
+
+Manual gestures (orbit, zoom, pan) are independent: animation changes `parentNode.rotation`, while gestures move the camera or pan offset.
+
+### Video recording orbit
+
+During ~5 s screen recording, the **camera** (not the model) auto-orbits horizontally so the shared MP4 shows motion. This is separate from the Animation toggle.
 
 ### Highlighting Without Full Rebuild
 
@@ -306,7 +314,8 @@ The 3D part is not “a picture in Compose” but a full **Surface/OpenGL** insi
 
 SceneView holds **engine**, **scene**, **camera**, **lighting**. Each frame (`onFrame`):
 
-- camera position updates (gestures, zoom, auto-rotate);
+- camera position updates (gestures, zoom, optional recording orbit);
+- if model animation is on, `parentNode.rotation` updates around Y using elapsed frame time;
 - camera `lookAt` center `(0,0,0)`;
 - if needed, **focus offset** eases in after double-tap on an atom (molecule shifts slightly so the picked atom is easier to see);
 - at end of frame, **label overlay** redraw is requested if labels are on.
@@ -342,12 +351,14 @@ On every camera move, labels recompute — 2D text over 3D, not Filament texture
 
 In the same `Box` over SceneView, Material 3 UI:
 
-- **app bar** — ligand name, mode buttons, hydrogens, labels, measurement, share, video, logout;
+- **app bar** — ligand name, logout;
+- **top-right actions** — record video, **animation (Play/Stop)**, measure, labels, hydrogens, share;
+- **bottom bar** — visualization mode chips (Balls / Fill / Sticks / Wire);
+- **left column** — zoom `+`, `-`, reset view;
 - **popup card** for selected atom or bond (element, name, ID, bond length);
 - **measurement lines and arcs** — distance between two atoms or angle between two bonds sharing an atom (Balls only);
 - **mode banner** — short hint when switching Balls / Fill / Sticks / Wire;
-- **large molecule dialog**;
-- **auto-rotate**, zoom ± buttons.
+- **large molecule dialog**.
 
 Theme (light/dark) sets Material colors **and** Filament clear color so scene edges match the rest of the app.
 
@@ -362,6 +373,7 @@ When SceneView is created, a reference is kept for **PixelCopy** (PNG/JPEG scree
 On a loaded model the user can:
 
 - **rotate and zoom** — gestures and buttons;
+- **animation** — toggle continuous Y-axis model rotation (Play / Stop);
 - **tap atom/bond** — card with element, name, bond length;
 - **display modes** — ball-and-stick, space fill, sticks, wireframe;
 - **hydrogens** — show/hide (unless disabled for very large molecules);
