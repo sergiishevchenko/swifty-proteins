@@ -1,64 +1,26 @@
 package com.music42.swiftyprotein.ui.login
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.WarningAmber
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import com.music42.swiftyprotein.R
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.music42.swiftyprotein.util.BiometricHelper
 import com.music42.swiftyprotein.ui.scaffoldSymmetricContentPadding
 
 @Composable
@@ -67,9 +29,7 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
-    var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isAuthenticated) {
         if (uiState.isAuthenticated) {
@@ -96,180 +56,27 @@ fun LoginScreen(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            shape = RoundedCornerShape(18.dp)
-                        ),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.app_name),
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = if (uiState.isRegistering) {
-                                stringResource(R.string.create_account_title)
-                            } else {
-                                stringResource(R.string.welcome_back)
-                            },
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        OutlinedTextField(
-                            value = uiState.username,
-                            onValueChange = viewModel::onUsernameChange,
-                            label = { Text(stringResource(R.string.username_hint)) },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = uiState.password,
-                            onValueChange = viewModel::onPasswordChange,
-                            label = { Text(stringResource(R.string.password_hint)) },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            visualTransformation = if (passwordVisible)
-                                VisualTransformation.None else PasswordVisualTransformation(),
-                            trailingIcon = {
-                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                    Icon(
-                                        imageVector = if (passwordVisible)
-                                            Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                        contentDescription = "Toggle password visibility"
-                                    )
-                                }
-                            },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Password,
-                                imeAction = ImeAction.Done
-                            ),
-                            keyboardActions = KeyboardActions(onDone = { viewModel.onSubmit() })
-                        )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Button(
-                            onClick = viewModel::onSubmit,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            enabled = !uiState.isLoading
-                        ) {
-                            if (uiState.isLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(22.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text(
-                                    if (uiState.isRegistering) {
-                                        stringResource(R.string.register_button)
-                                    } else {
-                                        stringResource(R.string.login_button)
-                                    }
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        TextButton(onClick = viewModel::toggleRegisterMode) {
-                            Text(
-                                if (uiState.isRegistering) {
-                                    stringResource(R.string.register_switch_to_login)
-                                } else {
-                                    stringResource(R.string.register_switch_to_register)
-                                }
-                            )
-                        }
-
-                        AnimatedVisibility(visible = uiState.biometricAvailable && !uiState.isRegistering) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                OutlinedButton(
-                                    onClick = {
-                                        val activity = context as? FragmentActivity ?: return@OutlinedButton
-                                        BiometricHelper.authenticate(
-                                            activity = activity,
-                                            title = context.getString(R.string.biometric_title),
-                                            subtitle = context.getString(R.string.biometric_subtitle),
-                                            negativeButtonText = context.getString(R.string.biometric_cancel),
-                                            onSuccess = viewModel::onBiometricSuccess,
-                                            onFailure = viewModel::onBiometricFailure
-                                        )
-                                    },
-                                    modifier = Modifier.height(50.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Fingerprint,
-                                        contentDescription = "Fingerprint login",
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(stringResource(R.string.biometric_login))
-                                }
-                            }
-                        }
-                    }
-                }
+                LoginFormCard(
+                    username = uiState.username,
+                    password = uiState.password,
+                    isRegistering = uiState.isRegistering,
+                    isLoading = uiState.isLoading,
+                    biometricAvailable = uiState.biometricAvailable,
+                    onUsernameChange = viewModel::onUsernameChange,
+                    onPasswordChange = viewModel::onPasswordChange,
+                    onSubmit = viewModel::onSubmit,
+                    onToggleRegisterMode = viewModel::toggleRegisterMode,
+                    onBiometricSuccess = viewModel::onBiometricSuccess,
+                    onBiometricFailure = viewModel::onBiometricFailure
+                )
             }
         }
     }
 
-    if (uiState.errorMessage != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissError,
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.WarningAmber,
-                    contentDescription = "Authentication error",
-                    tint = MaterialTheme.colorScheme.error
-                )
-            },
-            title = {
-                Text(
-                    text = stringResource(R.string.auth_failed_title),
-                    style = MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                Text(
-                    text = uiState.errorMessage!!,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            titleContentColor = MaterialTheme.colorScheme.onErrorContainer,
-            textContentColor = MaterialTheme.colorScheme.onErrorContainer,
-            iconContentColor = MaterialTheme.colorScheme.error,
-            confirmButton = {
-                Button(onClick = viewModel::dismissError) {
-                    Text(stringResource(R.string.auth_failed_got_it))
-                }
-            }
+    uiState.errorMessage?.let { message ->
+        LoginErrorDialog(
+            message = message,
+            onDismiss = viewModel::dismissError
         )
     }
 }
