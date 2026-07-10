@@ -1,29 +1,12 @@
 package com.music42.swiftyprotein.ui.favorites
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CompareArrows
-import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,11 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,6 +47,16 @@ fun FavoritesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     FavoriteSnackbarEffect(snackbarHostState, viewModel.favoriteSnackbar)
+
+    fun toggleCompareSelection(ligandId: String) {
+        selectedForCompare = if (selectedForCompare.contains(ligandId)) {
+            selectedForCompare - ligandId
+        } else if (selectedForCompare.size >= 2) {
+            selectedForCompare
+        } else {
+            selectedForCompare + ligandId
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -94,7 +83,11 @@ fun FavoritesScreen(
                         Icon(
                             Icons.Default.CompareArrows,
                             contentDescription = stringResource(R.string.cd_compare),
-                            tint = if (canCompare) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (canCompare) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
                         )
                     }
                     if (!currentUsername.isNullOrBlank()) {
@@ -122,98 +115,16 @@ fun FavoritesScreen(
             )
         }
     ) { innerPadding ->
-        Box(
+        FavoritesListContent(
+            favorites = favorites,
+            selectedForCompare = selectedForCompare,
+            accentColor = accentColor,
+            onToggleCompareSelection = ::toggleCompareSelection,
+            onRemoveFavorite = viewModel::onToggleFavorite,
+            onOpenLigand = onLigandSelected,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-        ) {
-            if (favorites.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.favorites_empty),
-                    modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 12.dp,
-                        vertical = 8.dp
-                    )
-                ) {
-                    items(items = favorites, key = { it }) { ligandId ->
-                        val selected = selectedForCompare.contains(ligandId)
-                        val containerColor by animateColorAsState(
-                            targetValue = if (selected)
-                                MaterialTheme.colorScheme.primaryContainer
-                            else
-                                MaterialTheme.colorScheme.surface,
-                            animationSpec = tween(durationMillis = 200),
-                            label = "fav_compare_color"
-                        )
-                        val starScale by animateFloatAsState(
-                            targetValue = 1.12f,
-                            animationSpec = spring(stiffness = Spring.StiffnessMedium),
-                            label = "favorite_scale"
-                        )
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
-                                .clickable {
-                                    selectedForCompare = if (selected) {
-                                        selectedForCompare - ligandId
-                                    } else {
-                                        if (selectedForCompare.size >= 2) selectedForCompare else selectedForCompare + ligandId
-                                    }
-                                },
-                            colors = CardDefaults.cardColors(
-                                containerColor = containerColor
-                            ),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = ligandId,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = accentColor
-                                    )
-                                    if (selected) {
-                                        Text(
-                                            text = stringResource(R.string.favorites_selected_for_compare),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                        )
-                                    }
-                                }
-                                IconButton(onClick = { viewModel.onToggleFavorite(ligandId) }) {
-                                    Icon(
-                                        Icons.Default.Star,
-                                        contentDescription = stringResource(R.string.cd_remove_from_favorites),
-                                        tint = accentColor,
-                                        modifier = Modifier.graphicsLayer {
-                                            scaleX = starScale
-                                            scaleY = starScale
-                                        }
-                                    )
-                                }
-                                IconButton(onClick = { onLigandSelected(ligandId) }) {
-                                    Icon(
-                                        Icons.Default.OpenInNew,
-                                        contentDescription = stringResource(R.string.cd_open_ligand),
-                                        tint = accentColor
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.size(8.dp))
-                    }
-                }
-            }
-        }
+        )
     }
 }
