@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -95,6 +96,12 @@ fun ProteinViewScreen(
     }
 
     BackHandler(enabled = overlayVisible, onBack = leaveScreen)
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.stopAnimation()
+        }
+    }
 
     LaunchedEffect(showBallsModeHint) {
         if (showBallsModeHint) {
@@ -329,6 +336,7 @@ fun ProteinViewScreen(
                             onClearMeasurement = viewModel::clearMeasurement,
                             onExitMeasurementMode = { viewModel.setMeasurementMode(false) },
                             autoRotate = isRecording,
+                            modelAutoRotate = uiState.isAnimationEnabled,
                             sceneBackground = sceneTint,
                             onSceneViewForScreenshot = { v -> sceneViewForScreenshot[0] = v },
                             overlaysEnabled = overlayVisible,
@@ -347,11 +355,13 @@ fun ProteinViewScreen(
                                     isLandscape = isLandscape,
                                     bottomBarHeight = bottomBarHeight,
                                     isRecording = isRecording,
+                                    isAnimationEnabled = uiState.isAnimationEnabled,
                                     measurementMode = uiState.measurementMode,
                                     showAtomLabels = uiState.showAtomLabels,
                                     showHydrogens = uiState.showHydrogens,
                                     visualizationMode = uiState.visualizationMode,
                                     onStartRecording = ::startVideoRecording,
+                                    onToggleAnimation = viewModel::toggleAnimation,
                                     onToggleMeasurement = {
                                         viewModel.setMeasurementMode(!uiState.measurementMode)
                                     },

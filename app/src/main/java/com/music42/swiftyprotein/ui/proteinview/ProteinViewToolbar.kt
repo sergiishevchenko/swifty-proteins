@@ -15,9 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Card
@@ -43,11 +45,13 @@ internal fun ProteinViewActionButtons(
     isLandscape: Boolean,
     bottomBarHeight: Dp,
     isRecording: Boolean,
+    isAnimationEnabled: Boolean,
     measurementMode: Boolean,
     showAtomLabels: Boolean,
     showHydrogens: Boolean,
     visualizationMode: VisualizationMode,
     onStartRecording: () -> Unit,
+    onToggleAnimation: () -> Unit,
     onToggleMeasurement: () -> Unit,
     onToggleLabels: () -> Unit,
     onToggleHydrogens: () -> Unit,
@@ -67,6 +71,26 @@ internal fun ProteinViewActionButtons(
                 contentDescription = "Record video",
                 tint = if (isRecording)
                     MaterialTheme.colorScheme.onErrorContainer
+                else
+                    MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+    val animationButton = @Composable {
+        CircleActionButton(
+            containerColor = if (isAnimationEnabled)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surface,
+            onClick = onToggleAnimation
+        ) {
+            Icon(
+                imageVector = if (isAnimationEnabled) Icons.Default.Stop else Icons.Default.PlayArrow,
+                contentDescription = stringResource(
+                    if (isAnimationEnabled) R.string.cd_stop_animation else R.string.cd_start_animation
+                ),
+                tint = if (isAnimationEnabled)
+                    MaterialTheme.colorScheme.onPrimaryContainer
                 else
                     MaterialTheme.colorScheme.primary
             )
@@ -162,6 +186,7 @@ internal fun ProteinViewActionButtons(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 recordButton()
+                animationButton()
                 measureButton()
                 labelsButton()
             }
@@ -181,6 +206,8 @@ internal fun ProteinViewActionButtons(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             recordButton()
+            Spacer(modifier = Modifier.height(8.dp))
+            animationButton()
             Spacer(modifier = Modifier.height(8.dp))
             measureButton()
             Spacer(modifier = Modifier.height(8.dp))

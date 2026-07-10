@@ -174,4 +174,17 @@ class ProteinViewViewModel @Inject constructor(
     fun dismissLargeMoleculeWarning() {
         _uiState.update { it.copy(largeMoleculeWarning = false) }
     }
+
+    fun toggleAnimation() {
+        _uiState.update { it.copy(isAnimationEnabled = !it.isAnimationEnabled) }
+    }
+
+    fun stopAnimation() {
+        _uiState.update { it.copy(isAnimationEnabled = false) }
+    }
+
+    override fun onCleared() {
+        stopAnimation()
+        super.onCleared()
+    }
 }

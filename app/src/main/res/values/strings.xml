@@ -70,4 +70,7 @@
     <string name="cd_zoom_in">Zoom in</string>
     <string name="cd_zoom_out">Zoom out</string>
     <string name="cd_reset_view">Reset view</string>
+    <string name="animation_button">Animation</string>
+    <string name="cd_start_animation">Start animation</string>
+    <string name="cd_stop_animation">Stop animation</string>
 </resources>

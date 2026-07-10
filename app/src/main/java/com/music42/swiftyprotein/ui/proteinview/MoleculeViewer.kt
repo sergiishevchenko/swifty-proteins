@@ -25,6 +25,7 @@ import io.github.sceneview.SceneView
 import io.github.sceneview.rememberCameraNode
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberMaterialLoader
+import io.github.sceneview.math.Rotation
 import io.github.sceneview.node.CameraNode
 import io.github.sceneview.node.MeshNode
 
@@ -51,6 +52,7 @@ internal fun MoleculeViewer(
     onClearMeasurement: () -> Unit,
     onExitMeasurementMode: () -> Unit,
     autoRotate: Boolean,
+    modelAutoRotate: Boolean,
     sceneBackground: Color,
     onSceneViewForScreenshot: (android.view.View?) -> Unit,
     overlaysEnabled: Boolean = true,
@@ -152,6 +154,9 @@ internal fun MoleculeViewer(
             defaultCamZ / defaultCamLen * baseCameraDistance
         )
     }
+    var autoRotateAngle by remember(ligand.id) { mutableFloatStateOf(0f) }
+    var modelRotationAngle by remember(ligand.id) { mutableFloatStateOf(0f) }
+    var lastFrameTimeNanos by remember(ligand.id) { mutableStateOf<Long?>(null) }
     if (resetTick > 0) {
         resetDefaultCameraVector(
             lastCameraVector = lastCameraVector,
@@ -167,6 +172,8 @@ internal fun MoleculeViewer(
         panOffset = Float3(0f, 0f, 0f)
         focusTarget = null
         parentNode.position = io.github.sceneview.math.Position(0f, 0f, 0f)
+        modelRotationAngle = 0f
+        parentNode.rotation = Rotation(0f, 0f, 0f)
     }
 
     val cameraPosition = remember(ligand.id, zoomFactor, resetTick) {
@@ -187,8 +194,6 @@ internal fun MoleculeViewer(
             targetPosition = io.github.sceneview.math.Position(0f, 0f, 0f)
         )
     }
-
-    var autoRotateAngle by remember(ligand.id) { mutableFloatStateOf(0f) }
 
     val zoomFactorRef = remember { floatArrayOf(zoomFactor) }
     val onZoomCallbackRef = remember { arrayOf(onZoomFactorChange) }
@@ -283,7 +288,7 @@ internal fun MoleculeViewer(
                 onSceneViewForScreenshot(this)
                 sceneViewSizePx = IntSize(width.coerceAtLeast(0), height.coerceAtLeast(0))
             },
-            onFrame = {
+            onFrame = { frameTimeNanos ->
                 if (!firstFrameLogged[0]) {
                     firstFrameLogged[0] = true
                 }
@@ -309,6 +314,17 @@ internal fun MoleculeViewer(
                             position.z * scale
                         )
                     }
+                }
+
+                if (modelAutoRotate) {
+                    val lastFrame = lastFrameTimeNanos
+                    if (lastFrame != null) {
+                        val deltaSeconds = (frameTimeNanos - lastFrame) / 1_000_000_000f
+                        modelRotationAngle += MODEL_ROTATION_DEGREES_PER_SECOND * deltaSeconds
+                    }
+                    lastFrameTimeNanos = frameTimeNanos
+                } else {
+                    lastFrameTimeNanos = null
                 }
 
                 runCatching {
@@ -339,6 +355,7 @@ internal fun MoleculeViewer(
                     -focusOffset.y + panOffset.y,
                     -focusOffset.z + panOffset.z
                 )
+                parentNode.rotation = Rotation(0f, modelRotationAngle, 0f)
 
                 invalidateAtomLabels()
             }
@@ -365,3 +382,5 @@ internal fun MoleculeViewer(
         )
     }
 }
+
+private const val MODEL_ROTATION_DEGREES_PER_SECOND = 30f

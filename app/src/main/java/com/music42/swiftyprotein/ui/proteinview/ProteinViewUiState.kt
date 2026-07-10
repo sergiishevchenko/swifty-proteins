@@ -19,5 +19,6 @@ data class ProteinViewUiState(
     val measurementBonds: List<Bond> = emptyList(),
     val loadingStage: String = "Loading",
     val loadingProgress: Float = 0f,
-    val largeMoleculeWarning: Boolean = false
+    val largeMoleculeWarning: Boolean = false,
+    val isAnimationEnabled: Boolean = false
 )
