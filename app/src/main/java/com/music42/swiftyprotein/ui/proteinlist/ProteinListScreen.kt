@@ -1,35 +1,14 @@
 package com.music42.swiftyprotein.ui.proteinlist
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,9 +16,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -47,17 +23,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import com.music42.swiftyprotein.R
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.music42.swiftyprotein.R
 import com.music42.swiftyprotein.ui.common.FavoriteSnackbarEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,184 +97,34 @@ fun ProteinListScreen(
             )
         }
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                TextField(
-                    value = uiState.searchQuery,
-                    onValueChange = viewModel::onSearchQueryChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.search_hint)) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = stringResource(R.string.cd_search))
-                    },
-                    trailingIcon = {
-                        if (uiState.searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
-                                Icon(
-                                    Icons.Default.Clear,
-                                    contentDescription = stringResource(R.string.cd_clear_search)
-                                )
-                            }
-                        }
-                    },
-                    singleLine = true,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
-                )
-
-                if (uiState.isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                            horizontal = 12.dp,
-                            vertical = 8.dp
-                        )
-                    ) {
-                        items(
-                            items = uiState.filteredLigands,
-                            key = { it }
-                        ) { ligandId ->
-                            LaunchedEffect(ligandId) {
-                                viewModel.ensureCachedInfo(ligandId)
-                            }
-                            val info = uiState.cachedInfo[ligandId]
-                            LigandItem(
-                                ligandId = ligandId,
-                                subtitle = info?.let {
-                                    buildString {
-                                        if (it.formula.isNotBlank()) append(it.formula)
-                                        if (it.atomCount > 0) {
-                                            if (isNotEmpty()) append(" · ")
-                                            append("${it.atomCount} atoms")
-                                        }
-                                    }.ifEmpty { null }
-                                },
-                                isFavorite = uiState.favoriteIds.contains(ligandId),
-                                onToggleFavorite = { viewModel.onToggleFavorite(ligandId) },
-                                onClick = { viewModel.onLigandClick(ligandId) }
-                            )
-                            Spacer(modifier = Modifier.size(8.dp))
-                        }
-                    }
-                }
-            }
-
-            if (uiState.filteredLigands.isEmpty() && uiState.searchQuery.isNotEmpty() && !uiState.isLoading) {
-                Text(
-                    text = stringResource(R.string.search_no_results, uiState.searchQuery),
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
+            ProteinListSearchField(
+                query = uiState.searchQuery,
+                onQueryChange = viewModel::onSearchQueryChange
+            )
+            ProteinListContent(
+                isLoading = uiState.isLoading,
+                filteredLigands = uiState.filteredLigands,
+                searchQuery = uiState.searchQuery,
+                cachedInfo = uiState.cachedInfo,
+                favoriteIds = uiState.favoriteIds,
+                onEnsureCachedInfo = viewModel::ensureCachedInfo,
+                onToggleFavorite = viewModel::onToggleFavorite,
+                onLigandClick = viewModel::onLigandClick,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 
-    if (uiState.loadErrorMessage != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissLoadError,
-            title = { Text(stringResource(R.string.load_error_title)) },
-            text = { Text(uiState.loadErrorMessage!!) },
-            confirmButton = {
-                Button(onClick = viewModel::retryLoadLigands) {
-                    Text(stringResource(R.string.retry))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissLoadError) {
-                    Text(stringResource(R.string.dismiss))
-                }
-            }
+    uiState.loadErrorMessage?.let { message ->
+        ProteinListLoadErrorDialog(
+            message = message,
+            onRetry = viewModel::retryLoadLigands,
+            onDismiss = viewModel::dismissLoadError
         )
-    }
-}
-
-@Composable
-private fun LigandItem(
-    ligandId: String,
-    subtitle: String?,
-    isFavorite: Boolean,
-    onToggleFavorite: () -> Unit,
-    onClick: () -> Unit
-) {
-    val containerColor by animateColorAsState(
-        targetValue = MaterialTheme.colorScheme.surface,
-        animationSpec = tween(durationMillis = 220),
-        label = "ligand_container"
-    )
-    val starScale by animateFloatAsState(
-        targetValue = if (isFavorite) 1.12f else 1.0f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "favorite_scale"
-    )
-    val accentColor = MaterialTheme.colorScheme.primary
-    val starTint by animateColorAsState(
-        targetValue = if (isFavorite) accentColor else accentColor.copy(alpha = 0.65f),
-        animationSpec = tween(durationMillis = 220),
-        label = "favorite_tint"
-    )
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick)
-            .animateContentSize(),
-        colors = CardDefaults.cardColors(
-            containerColor = containerColor
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = ligandId,
-                    fontWeight = FontWeight.SemiBold,
-                    color = accentColor
-                )
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            IconButton(onClick = onToggleFavorite) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription = stringResource(
-                        if (isFavorite) R.string.cd_unfavorite else R.string.cd_favorite
-                    ),
-                    tint = starTint,
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = starScale
-                        scaleY = starScale
-                    }
-                )
-            }
-        }
     }
 }
