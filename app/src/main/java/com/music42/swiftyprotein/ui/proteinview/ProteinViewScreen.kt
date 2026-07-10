@@ -1,127 +1,61 @@
 package com.music42.swiftyprotein.ui.proteinview
 
-import android.media.MediaRecorder
-import androidx.compose.ui.viewinterop.AndroidView
-import android.media.projection.MediaProjection
-import android.media.projection.MediaProjectionManager
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.ClipData
-import android.content.res.Configuration
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.ImageFormat
-import android.graphics.PixelFormat
+import android.content.res.Configuration
+import android.media.projection.MediaProjectionManager
 import android.os.Handler
 import android.os.Looper
-import android.view.MotionEvent
-import android.view.PixelCopy
-import android.hardware.display.DisplayManager
-import android.hardware.display.VirtualDisplay
-import androidx.core.content.ContextCompat
-import com.music42.swiftyprotein.MainActivity
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Label
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Straighten
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.IntOffset
-import com.music42.swiftyprotein.R
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.toSize
-import androidx.core.content.FileProvider
-import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.music42.swiftyprotein.data.model.Atom
-import com.music42.swiftyprotein.data.model.Bond
-import com.music42.swiftyprotein.data.model.BondOrder
-import com.music42.swiftyprotein.data.model.Ligand
-import io.github.sceneview.Scene
-import io.github.sceneview.SceneView
-import io.github.sceneview.rememberCameraNode
-import io.github.sceneview.rememberEngine
-import io.github.sceneview.rememberMaterialLoader
-import io.github.sceneview.node.CameraNode
-import io.github.sceneview.node.MeshNode
-import dev.romainguy.kotlin.math.Float3
-import kotlin.math.hypot
+import com.music42.swiftyprotein.MainActivity
+import com.music42.swiftyprotein.R
+import com.music42.swiftyprotein.ui.scaffoldSymmetricContentPadding
 import java.io.File
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.music42.swiftyprotein.ui.scaffoldSymmetricContentPadding
-
-private const val SHARE_LOGIN_SUPPRESS_MS = 10_000L
-private const val VIDEO_SHARE_LOGIN_SUPPRESS_MS = 180_000L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -164,7 +98,7 @@ fun ProteinViewScreen(
 
     LaunchedEffect(showBallsModeHint) {
         if (showBallsModeHint) {
-            kotlinx.coroutines.delay(2000L)
+            delay(2000L)
             showBallsModeHint = false
         }
     }
@@ -252,6 +186,33 @@ fun ProteinViewScreen(
         projectionLauncher.launch(mgr.createScreenCaptureIntent())
     }
 
+    fun startVideoRecording() {
+        val activity = context as? Activity ?: return
+        (activity as? MainActivity)?.suppressLoginFor(VIDEO_SHARE_LOGIN_SUPPRESS_MS)
+
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            val ok = ContextCompat.checkSelfPermission(
+                activity,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!ok) {
+                postNotificationsLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                return
+            }
+        }
+        runCatching {
+            ContextCompat.startForegroundService(
+                activity,
+                Intent(activity, MediaProjectionForegroundService::class.java)
+            )
+        }.onFailure {
+            recordErrorMessage = it.localizedMessage ?: "Failed to start recording service."
+            return
+        }
+        val mgr = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        projectionLauncher.launch(mgr.createScreenCaptureIntent())
+    }
+
     fun requestScreenshot(format: ShareFormat) {
         val shareText = buildLigandShareText(safeLigandId, uiState.ligand)
         shareModelScreenshotPixelCopyFallback(
@@ -278,7 +239,7 @@ fun ProteinViewScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { leaveScreen() }) {
+                    IconButton(onClick = leaveScreen) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back)
@@ -318,71 +279,21 @@ fun ProteinViewScreen(
         ) {
             when {
                 uiState.isLoading -> {
-                    Card(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(horizontal = 24.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 28.dp, vertical = 22.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(42.dp),
-                                strokeWidth = 3.dp
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = stringResource(R.string.loading_ligand_id, safeLigandId),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = uiState.loadingStage,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                            LinearProgressIndicator(
-                                modifier = Modifier.width(180.dp),
-                                progress = { uiState.loadingProgress.coerceIn(0f, 1f) }
-                            )
-                        }
-                    }
+                    ProteinViewLoadingCard(
+                        ligandId = safeLigandId,
+                        loadingStage = uiState.loadingStage,
+                        loadingProgress = uiState.loadingProgress,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
 
                 uiState.errorMessage != null -> {
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(horizontal = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = stringResource(R.string.load_failed_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = uiState.errorMessage!!,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Button(onClick = viewModel::retryLoad) {
-                            Text(stringResource(R.string.retry))
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        TextButton(onClick = leaveScreen) {
-                            Text(stringResource(R.string.back))
-                        }
-                    }
+                    ProteinViewErrorContent(
+                        errorMessage = uiState.errorMessage!!,
+                        onRetry = viewModel::retryLoad,
+                        onBack = leaveScreen,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
 
                 uiState.ligand != null -> {
@@ -428,621 +339,98 @@ fun ProteinViewScreen(
                         )
 
                         if (overlayVisible) {
-                        androidx.compose.ui.window.Popup(
-                            alignment = Alignment.TopEnd,
-                            properties = androidx.compose.ui.window.PopupProperties(focusable = false)
-                        ) {
-                            if (isLandscape) {
-                                Column(
-                                    modifier = Modifier.padding(end = 8.dp, top = 8.dp),
-                                    horizontalAlignment = Alignment.End
-                                ) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Card(
-                                            modifier = Modifier.size(42.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = if (isRecording)
-                                                    MaterialTheme.colorScheme.errorContainer
-                                                else
-                                                    MaterialTheme.colorScheme.surface
-                                            ),
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                        ) {
-                                            IconButton(
-                                                onClick = {
-                                                    if (isRecording) return@IconButton
-                                                    val activity = context as? Activity ?: return@IconButton
-                                                    (activity as? MainActivity)?.suppressLoginFor(VIDEO_SHARE_LOGIN_SUPPRESS_MS)
-
-                                                    if (android.os.Build.VERSION.SDK_INT >= 33) {
-                                                        val ok = ContextCompat.checkSelfPermission(
-                                                            activity,
-                                                            android.Manifest.permission.POST_NOTIFICATIONS
-                                                        ) == PackageManager.PERMISSION_GRANTED
-                                                        if (!ok) {
-                                                            postNotificationsLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                                                            return@IconButton
-                                                        }
-                                                    }
-                                                    runCatching {
-                                                        ContextCompat.startForegroundService(
-                                                            activity,
-                                                            Intent(activity, MediaProjectionForegroundService::class.java)
-                                                        )
-                                                    }.onFailure {
-                                                        recordErrorMessage =
-                                                            it.localizedMessage ?: "Failed to start recording service."
-                                                        return@IconButton
-                                                    }
-                                                    val mgr = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-                                                    projectionLauncher.launch(mgr.createScreenCaptureIntent())
-                                                },
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.Videocam,
-                                                    contentDescription = "Record video",
-                                                    tint = if (isRecording)
-                                                        MaterialTheme.colorScheme.onErrorContainer
-                                                    else
-                                                        MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                        Card(
-                                            modifier = Modifier.size(42.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = if (uiState.measurementMode)
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                else
-                                                    MaterialTheme.colorScheme.surface
-                                            ),
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                        ) {
-                                            IconButton(
-                                                onClick = {
-                                                    if (uiState.visualizationMode != VisualizationMode.BALL_AND_STICK) {
-                                                        showBallsModeHint = true
-                                                        return@IconButton
-                                                    }
-                                                    viewModel.setMeasurementMode(!uiState.measurementMode)
-                                                },
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.Straighten,
-                                                    contentDescription = "Toggle measurement mode",
-                                                    tint = if (uiState.measurementMode)
-                                                        MaterialTheme.colorScheme.onPrimaryContainer
-                                                    else
-                                                        MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                        Card(
-                                            modifier = Modifier.size(42.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = if (uiState.showAtomLabels)
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                else
-                                                    MaterialTheme.colorScheme.surface
-                                            ),
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                        ) {
-                                            IconButton(
-                                                onClick = {
-                                                    if (uiState.visualizationMode != VisualizationMode.BALL_AND_STICK) {
-                                                        showBallsModeHint = true
-                                                        return@IconButton
-                                                    }
-                                                    viewModel.setShowAtomLabels(!uiState.showAtomLabels)
-                                                },
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.Label,
-                                                    contentDescription = "Toggle atom labels",
-                                                    tint = if (uiState.showAtomLabels)
-                                                        MaterialTheme.colorScheme.onPrimaryContainer
-                                                    else
-                                                        MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Card(
-                                            modifier = Modifier.size(42.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = if (uiState.showHydrogens)
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                else
-                                                    MaterialTheme.colorScheme.surface
-                                            ),
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                        ) {
-                                            IconButton(
-                                                onClick = { viewModel.setShowHydrogens(!uiState.showHydrogens) },
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Text(
-                                                    text = "H",
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = if (uiState.showHydrogens)
-                                                        MaterialTheme.colorScheme.onPrimaryContainer
-                                                    else
-                                                        MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                        Card(
-                                            modifier = Modifier.size(42.dp),
-                                            shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.surface
-                                            ),
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                        ) {
-                                            IconButton(
-                                                onClick = { showShareFormatDialog = true },
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.Share,
-                                                    contentDescription = "Share",
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(end = 8.dp, top = 8.dp, bottom = bottomBarHeight + 8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = if (isRecording)
-                                                MaterialTheme.colorScheme.errorContainer
-                                            else
-                                                MaterialTheme.colorScheme.surface
-                                        ),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                    ) {
-                                        IconButton(
-                                            onClick = {
-                                                if (isRecording) return@IconButton
-                                                val activity = context as? Activity ?: return@IconButton
-                                                (activity as? MainActivity)?.suppressLoginFor(VIDEO_SHARE_LOGIN_SUPPRESS_MS)
-
-                                                if (android.os.Build.VERSION.SDK_INT >= 33) {
-                                                    val ok = ContextCompat.checkSelfPermission(
-                                                        activity,
-                                                        android.Manifest.permission.POST_NOTIFICATIONS
-                                                    ) == PackageManager.PERMISSION_GRANTED
-                                                    if (!ok) {
-                                                        postNotificationsLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                                                        return@IconButton
-                                                    }
-                                                }
-                                                runCatching {
-                                                    ContextCompat.startForegroundService(
-                                                        activity,
-                                                        Intent(activity, MediaProjectionForegroundService::class.java)
-                                                    )
-                                                }.onFailure {
-                                                    recordErrorMessage =
-                                                        it.localizedMessage ?: "Failed to start recording service."
-                                                    return@IconButton
-                                                }
-                                                val mgr = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-                                                projectionLauncher.launch(mgr.createScreenCaptureIntent())
-                                            },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Videocam,
-                                                contentDescription = "Record video",
-                                                tint = if (isRecording)
-                                                    MaterialTheme.colorScheme.onErrorContainer
-                                                else
-                                                    MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = if (uiState.measurementMode)
-                                                MaterialTheme.colorScheme.primaryContainer
-                                            else
-                                                MaterialTheme.colorScheme.surface
-                                        ),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                    ) {
-                                        IconButton(
-                                            onClick = {
-                                                if (uiState.visualizationMode != VisualizationMode.BALL_AND_STICK) {
-                                                    showBallsModeHint = true
-                                                    return@IconButton
-                                                }
-                                                viewModel.setMeasurementMode(!uiState.measurementMode)
-                                            },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Straighten,
-                                                contentDescription = "Toggle measurement mode",
-                                                tint = if (uiState.measurementMode)
-                                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                                else
-                                                    MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = if (uiState.showAtomLabels)
-                                                MaterialTheme.colorScheme.primaryContainer
-                                            else
-                                                MaterialTheme.colorScheme.surface
-                                        ),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                    ) {
-                                        IconButton(
-                                            onClick = {
-                                                if (uiState.visualizationMode != VisualizationMode.BALL_AND_STICK) {
-                                                    showBallsModeHint = true
-                                                    return@IconButton
-                                                }
-                                                viewModel.setShowAtomLabels(!uiState.showAtomLabels)
-                                            },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Label,
-                                                contentDescription = "Toggle atom labels",
-                                                tint = if (uiState.showAtomLabels)
-                                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                                else
-                                                    MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = if (uiState.showHydrogens)
-                                                MaterialTheme.colorScheme.primaryContainer
-                                            else
-                                                MaterialTheme.colorScheme.surface
-                                        ),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                    ) {
-                                        IconButton(
-                                            onClick = { viewModel.setShowHydrogens(!uiState.showHydrogens) },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Text(
-                                                text = "H",
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Bold,
-                                                color = if (uiState.showHydrogens)
-                                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                                else
-                                                    MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surface
-                                        ),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                                    ) {
-                                        IconButton(
-                                            onClick = { showShareFormatDialog = true },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Share,
-                                                contentDescription = "Share",
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        androidx.compose.ui.window.Popup(
-                            alignment = Alignment.TopStart,
-                            properties = androidx.compose.ui.window.PopupProperties(focusable = false)
-                        ) {
-                            if (isLandscape) {
-                                Row(
-                                    modifier = Modifier.padding(start = 8.dp, top = 8.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    ) {
-                                        IconButton(
-                                            onClick = { zoomFactor = (zoomFactor * 1.2f).coerceIn(0.3f, 5.0f) },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Add,
-                                                contentDescription = stringResource(R.string.cd_zoom_in),
-                                                tint = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        }
-                                    }
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    ) {
-                                        IconButton(
-                                            onClick = { zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f) },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Remove,
-                                                contentDescription = stringResource(R.string.cd_zoom_out),
-                                                tint = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        }
-                                    }
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    ) {
-                                        IconButton(
-                                            onClick = {
-                                                zoomFactor = 1f
-                                                resetTick++
-                                            },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.Refresh,
-                                                contentDescription = stringResource(R.string.cd_reset_view),
-                                                tint = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        }
-                                    }
-                                }
-                            } else {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(start = 8.dp, top = 8.dp, bottom = bottomBarHeight + 8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    ) {
-                                        IconButton(
-                                            onClick = { zoomFactor = (zoomFactor * 1.2f).coerceIn(0.3f, 5.0f) },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Add,
-                                                contentDescription = stringResource(R.string.cd_zoom_in),
-                                                tint = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    ) {
-                                        IconButton(
-                                            onClick = { zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f) },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Remove,
-                                                contentDescription = stringResource(R.string.cd_zoom_out),
-                                                tint = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Card(
-                                        modifier = Modifier.size(42.dp),
-                                        shape = CircleShape,
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    ) {
-                                        IconButton(
-                                            onClick = {
-                                                zoomFactor = 1f
-                                                resetTick++
-                                            },
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.Refresh,
-                                                contentDescription = stringResource(R.string.cd_reset_view),
-                                                tint = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        androidx.compose.ui.window.Popup(alignment = Alignment.TopCenter) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(top = 12.dp)
+                            Popup(
+                                alignment = Alignment.TopEnd,
+                                properties = PopupProperties(focusable = false)
                             ) {
-                                AnimatedVisibility(
-                                    visible = uiState.measurementMode,
-                                    enter = fadeIn(),
-                                    exit = fadeOut()
-                                ) {
-                                    ModeBanner(
-                                        text = "MEASURE MODE",
-                                        onClick = { viewModel.setMeasurementMode(false) }
-                                    )
-                                }
-                                AnimatedVisibility(
-                                    visible = uiState.showAtomLabels,
-                                    enter = fadeIn(),
-                                    exit = fadeOut()
-                                ) {
-                                    ModeBanner(
-                                        text = "LABELS MODE",
-                                        onClick = { viewModel.setShowAtomLabels(false) },
-                                        modifier = Modifier.padding(top = 8.dp)
-                                    )
-                                }
-                                AnimatedVisibility(
-                                    visible = uiState.showHydrogens,
-                                    enter = fadeIn(),
-                                    exit = fadeOut()
-                                ) {
-                                    ModeBanner(
-                                        text = "HYDROGENS VISIBLE",
-                                        onClick = { viewModel.setShowHydrogens(false) },
-                                        modifier = Modifier.padding(top = 8.dp)
-                                    )
-                                }
-                                AnimatedVisibility(
-                                    visible = showBallsModeHint,
-                                    enter = fadeIn(),
-                                    exit = fadeOut()
-                                ) {
-                                    ModeBanner(
-                                        text = "Switch to Balls mode",
-                                        onClick = { showBallsModeHint = false },
-                                        modifier = Modifier.padding(top = 8.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        if (uiState.selectedAtom != null) {
-                            androidx.compose.ui.window.Popup(
-                                alignment = Alignment.BottomStart,
-                                onDismissRequest = { viewModel.dismissAtomInfo() }
-                            ) {
-                                AtomTooltip(
-                                    atom = uiState.selectedAtom!!,
-                                    onDismiss = viewModel::dismissAtomInfo,
-                                    modifier = Modifier.padding(start = 10.dp, bottom = 100.dp)
+                                ProteinViewActionButtons(
+                                    isLandscape = isLandscape,
+                                    bottomBarHeight = bottomBarHeight,
+                                    isRecording = isRecording,
+                                    measurementMode = uiState.measurementMode,
+                                    showAtomLabels = uiState.showAtomLabels,
+                                    showHydrogens = uiState.showHydrogens,
+                                    visualizationMode = uiState.visualizationMode,
+                                    onStartRecording = ::startVideoRecording,
+                                    onToggleMeasurement = {
+                                        viewModel.setMeasurementMode(!uiState.measurementMode)
+                                    },
+                                    onToggleLabels = {
+                                        viewModel.setShowAtomLabels(!uiState.showAtomLabels)
+                                    },
+                                    onToggleHydrogens = {
+                                        viewModel.setShowHydrogens(!uiState.showHydrogens)
+                                    },
+                                    onShare = { showShareFormatDialog = true },
+                                    onBallsModeRequired = { showBallsModeHint = true }
                                 )
                             }
-                        }
 
-                        if (uiState.selectedBond != null) {
-                            androidx.compose.ui.window.Popup(
-                                alignment = Alignment.BottomStart,
-                                onDismissRequest = { viewModel.dismissBondInfo() }
+                            Popup(
+                                alignment = Alignment.TopStart,
+                                properties = PopupProperties(focusable = false)
                             ) {
-                                BondTooltip(
-                                    bond = uiState.selectedBond!!,
-                                    ligand = uiState.ligand!!,
-                                    onDismiss = viewModel::dismissBondInfo,
-                                    modifier = Modifier.padding(start = 10.dp, bottom = 100.dp)
+                                ProteinViewZoomControls(
+                                    isLandscape = isLandscape,
+                                    bottomBarHeight = bottomBarHeight,
+                                    onZoomIn = {
+                                        zoomFactor = (zoomFactor * 1.2f).coerceIn(0.3f, 5.0f)
+                                    },
+                                    onZoomOut = {
+                                        zoomFactor = (zoomFactor / 1.2f).coerceIn(0.3f, 5.0f)
+                                    },
+                                    onReset = {
+                                        zoomFactor = 1f
+                                        resetTick++
+                                    }
                                 )
                             }
-                        }
 
-                        Card(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp, vertical = 4.dp),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            ),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 10.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                VisualizationMode.entries.forEach { mode ->
-                                    FilterChip(
-                                        modifier = Modifier.weight(1f),
-                                        selected = uiState.visualizationMode == mode,
-                                        onClick = { viewModel.setVisualizationMode(mode) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                        ),
-                                        label = {
-                                            Text(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                text = when (mode) {
-                                                    VisualizationMode.BALL_AND_STICK -> "Balls"
-                                                    VisualizationMode.SPACE_FILL -> "Fill"
-                                                    VisualizationMode.STICKS_ONLY -> "Sticks"
-                                                    VisualizationMode.WIREFRAME -> "Wire"
-                                                },
-                                                style = MaterialTheme.typography.labelSmall,
-                                                textAlign = TextAlign.Center,
-                                                maxLines = 1
-                                            )
-                                        }
+                            Popup(alignment = Alignment.TopCenter) {
+                                ProteinViewModeBanners(
+                                    measurementMode = uiState.measurementMode,
+                                    showAtomLabels = uiState.showAtomLabels,
+                                    showHydrogens = uiState.showHydrogens,
+                                    showBallsModeHint = showBallsModeHint,
+                                    onExitMeasurement = { viewModel.setMeasurementMode(false) },
+                                    onExitLabels = { viewModel.setShowAtomLabels(false) },
+                                    onExitHydrogens = { viewModel.setShowHydrogens(false) },
+                                    onDismissBallsHint = { showBallsModeHint = false }
+                                )
+                            }
+
+                            if (uiState.selectedAtom != null) {
+                                Popup(
+                                    alignment = Alignment.BottomStart,
+                                    onDismissRequest = { viewModel.dismissAtomInfo() }
+                                ) {
+                                    AtomTooltip(
+                                        atom = uiState.selectedAtom!!,
+                                        onDismiss = viewModel::dismissAtomInfo,
+                                        modifier = Modifier.padding(start = 10.dp, bottom = 100.dp)
                                     )
                                 }
                             }
-                        }
+
+                            if (uiState.selectedBond != null) {
+                                Popup(
+                                    alignment = Alignment.BottomStart,
+                                    onDismissRequest = { viewModel.dismissBondInfo() }
+                                ) {
+                                    BondTooltip(
+                                        bond = uiState.selectedBond!!,
+                                        ligand = uiState.ligand!!,
+                                        onDismiss = viewModel::dismissBondInfo,
+                                        modifier = Modifier.padding(start = 10.dp, bottom = 100.dp)
+                                    )
+                                }
+                            }
+
+                            ProteinViewVisualizationBar(
+                                selectedMode = uiState.visualizationMode,
+                                onModeSelected = viewModel::setVisualizationMode,
+                                modifier = Modifier.align(Alignment.BottomCenter)
+                            )
                         }
                     }
                 }
@@ -1051,1354 +439,24 @@ fun ProteinViewScreen(
     }
 
     if (showShareFormatDialog) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showShareFormatDialog = false },
-            title = { Text("Export format") },
-            text = { Text("Choose image format to share.") },
-            confirmButton = {
-                androidx.compose.material3.TextButton(onClick = {
-                    showShareFormatDialog = false
-                    requestScreenshot(ShareFormat.PNG)
-                }) { Text("PNG") }
-            },
-            dismissButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    androidx.compose.material3.TextButton(onClick = {
-                        showShareFormatDialog = false
-                        requestScreenshot(ShareFormat.JPEG)
-                    }) { Text("JPEG") }
-                    androidx.compose.material3.TextButton(onClick = { showShareFormatDialog = false }) { Text("Cancel") }
-                }
-            }
+        ShareFormatDialog(
+            onDismiss = { showShareFormatDialog = false },
+            onPngSelected = { requestScreenshot(ShareFormat.PNG) },
+            onJpegSelected = { requestScreenshot(ShareFormat.JPEG) }
         )
     }
 
-    if (recordErrorMessage != null) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { recordErrorMessage = null },
-            title = { Text("Video recording") },
-            text = { Text(recordErrorMessage!!) },
-            confirmButton = {
-                androidx.compose.material3.TextButton(onClick = { recordErrorMessage = null }) {
-                    Text(stringResource(R.string.ok))
-                }
-            }
+    recordErrorMessage?.let { message ->
+        RecordErrorDialog(
+            message = message,
+            onDismiss = { recordErrorMessage = null }
         )
     }
 
     if (uiState.largeMoleculeWarning) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { viewModel.dismissLargeMoleculeWarning() },
-            title = { Text(stringResource(R.string.large_molecule_title)) },
-            text = {
-                val atomCount = uiState.ligand?.atoms?.size
-                Text(
-                    if (atomCount != null) {
-                        stringResource(R.string.large_molecule_message, atomCount)
-                    } else {
-                        stringResource(R.string.load_error_message)
-                    }
-                )
-            },
-            confirmButton = {
-                androidx.compose.material3.TextButton(onClick = { viewModel.dismissLargeMoleculeWarning() }) {
-                    Text(stringResource(R.string.ok))
-                }
-            }
+        LargeMoleculeWarningDialog(
+            atomCount = uiState.ligand?.atoms?.size,
+            onDismiss = { viewModel.dismissLargeMoleculeWarning() }
         )
-    }
-
-}
-
-private fun buildLigandShareText(ligandId: String, ligand: Ligand?): String {
-    val namePart = ligand?.name?.takeIf { it.isNotBlank() } ?: "Unknown ligand"
-    val atomsPart = ligand?.atoms?.size?.let { "Atoms: $it" } ?: "Atoms: ?"
-    val formulaPart = ligand?.formula?.takeIf { it.isNotBlank() }?.let { "Formula: $it" } ?: "Formula: ?"
-    return buildString {
-        append("Ligand $ligandId — $namePart\n")
-        append("$atomsPart · $formulaPart\n")
-        append("https://www.rcsb.org/ligand/$ligandId")
-    }
-}
-
-private fun shareImageFile(
-    context: Context,
-    file: File,
-    format: ShareFormat,
-    chooserTitle: String,
-    shareText: String,
-    ligandId: String,
-    openChooser: (Intent, String) -> Unit
-) {
-    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = format.mimeType
-        putExtra(Intent.EXTRA_STREAM, uri)
-        putExtra(Intent.EXTRA_TEXT, shareText)
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        val clip = ClipData.newUri(
-            context.contentResolver,
-            "ligand_${ligandId}",
-            uri
-        )
-        clip.addItem(ClipData.Item(shareText))
-        clipData = clip
-    }
-    val resInfoList = context.packageManager.queryIntentActivities(intent, 0)
-    for (resolveInfo in resInfoList) {
-        runCatching {
-            context.grantUriPermission(
-                resolveInfo.activityInfo.packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-        }
-    }
-    openChooser(intent, chooserTitle)
-}
-
-private fun shareModelScreenshotPixelCopyFallback(
-    context: Context,
-    ligandId: String,
-    format: ShareFormat,
-    shareText: String,
-    sceneViewFor3d: android.view.View?,
-    openChooser: (Intent, String) -> Unit
-) {
-    val activity = context as? Activity ?: return
-    val window = activity.window
-    val decor = window.decorView
-    val bitmap = Bitmap.createBitmap(decor.width, decor.height, Bitmap.Config.ARGB_8888)
-
-    PixelCopy.request(window, bitmap, { windowResult ->
-        if (windowResult != PixelCopy.SUCCESS) return@request
-
-        val svRoot = sceneViewFor3d
-        val surfaceView = svRoot?.let { findSurfaceView(it) }
-        if (surfaceView == null || surfaceView.width <= 0 || surfaceView.height <= 0) {
-            val file = saveBitmapToCache(context, bitmap, ligandId, format)
-            shareImageFile(context, file, format, "Share Ligand", shareText, ligandId, openChooser)
-            return@request
-        }
-
-        val modelBitmap = Bitmap.createBitmap(surfaceView.width, surfaceView.height, Bitmap.Config.ARGB_8888)
-        PixelCopy.request(
-            surfaceView,
-            modelBitmap,
-            PixelCopy.OnPixelCopyFinishedListener { modelResult ->
-                if (modelResult == PixelCopy.SUCCESS) {
-                    val loc = IntArray(2)
-                    surfaceView.getLocationInWindow(loc)
-                    val canvas = android.graphics.Canvas(bitmap)
-                    canvas.drawBitmap(modelBitmap, loc[0].toFloat(), loc[1].toFloat(), null)
-                }
-                val file = saveBitmapToCache(context, bitmap, ligandId, format)
-                shareImageFile(context, file, format, "Share Ligand", shareText, ligandId, openChooser)
-            },
-            Handler(Looper.getMainLooper())
-        )
-    }, Handler(Looper.getMainLooper()))
-}
-
-private fun findSurfaceView(root: android.view.View): android.view.SurfaceView? {
-    if (root is android.view.SurfaceView) return root
-    if (root is android.view.ViewGroup) {
-        for (i in 0 until root.childCount) {
-            val child = root.getChildAt(i) ?: continue
-            val found = findSurfaceView(child)
-            if (found != null) return found
-        }
-    }
-    return null
-}
-
-private fun saveBitmapToCache(
-    context: Context,
-    bitmap: Bitmap,
-    ligandId: String,
-    format: ShareFormat
-): File {
-    val dir = File(context.cacheDir, "shared_images")
-    dir.mkdirs()
-    val file = File(dir, "ligand_${ligandId}.${format.extension}")
-    file.outputStream().use { out ->
-        val compressFormat = when (format) {
-            ShareFormat.PNG -> Bitmap.CompressFormat.PNG
-            ShareFormat.JPEG -> Bitmap.CompressFormat.JPEG
-        }
-        bitmap.compress(compressFormat, 92, out)
-    }
-    return file
-}
-
-@Composable
-private fun MoleculeViewer(
-    ligand: Ligand,
-    mode: VisualizationMode,
-    zoomFactor: Float,
-    onZoomFactorChange: (Float) -> Unit,
-    resetTick: Int,
-    selectedAtom: Atom?,
-    onAtomSelected: (Atom?) -> Unit,
-    onDismissAtom: () -> Unit,
-    selectedBond: Bond?,
-    onBondSelected: (Bond?) -> Unit,
-    onDismissBond: () -> Unit,
-    showAtomLabels: Boolean,
-    showHydrogens: Boolean,
-    measurementMode: Boolean,
-    measurementAtomIds: List<String>,
-    onMeasurementAtomTapped: (Atom) -> Unit,
-    measurementBonds: List<Bond>,
-    onMeasurementBondTapped: (Bond) -> Unit,
-    onClearMeasurement: () -> Unit,
-    onExitMeasurementMode: () -> Unit,
-    autoRotate: Boolean,
-    sceneBackground: Color,
-    onSceneViewForScreenshot: (android.view.View?) -> Unit,
-    overlaysEnabled: Boolean = true,
-    modifier: Modifier = Modifier
-) {
-    val engine = rememberEngine()
-    val materialLoader = rememberMaterialLoader(engine)
-
-    val lastTap = remember { longArrayOf(0L) }
-    val lastTapAtomId = remember { arrayOfNulls<String>(1) }
-    var focusTarget by remember(ligand.id) { mutableStateOf<Float3?>(null) }
-    var focusOffset by remember(ligand.id) { mutableStateOf(Float3(0f, 0f, 0f)) }
-    var panOffset by remember(ligand.id) { mutableStateOf(Float3(0f, 0f, 0f)) }
-    val labelOverlayViewRef = remember { arrayOfNulls<android.view.View>(1) }
-    val labelCameraRef = remember { arrayOfNulls<CameraNode>(1) }
-    val labelAtomNodeMapRef = remember { arrayOfNulls<Map<MeshNode, Atom>>(1) }
-    val sceneViewWindowXY = remember { intArrayOf(0, 0) }
-    var sceneViewSizePx by remember { mutableStateOf(IntSize.Zero) }
-    val mainHandler = remember { Handler(Looper.getMainLooper()) }
-
-    LaunchedEffect(showAtomLabels) {
-        if (!showAtomLabels) {
-            labelOverlayViewRef[0] = null
-        }
-    }
-
-    val (parentNode, atomNodeMap, bondNodeMap) = remember(ligand, mode, showHydrogens) {
-        MoleculeSceneBuilder.build(
-            engine = engine,
-            materialLoader = materialLoader,
-            ligand = ligand,
-            mode = mode,
-            highlightElement = null,
-            centerOffset = Float3(0f, 0f, 0f),
-            showHydrogens = showHydrogens
-        )
-    }
-    LaunchedEffect(ligand.id, mode, atomNodeMap.size) {}
-
-    LaunchedEffect(selectedAtom?.id, measurementMode, measurementAtomIds, measurementBonds) {
-        val measureAccent = Color(0xFFFF6A00)
-            val measurementAtomIdSet: Set<String> = if (measurementMode) {
-                if (measurementBonds.isNotEmpty()) {
-                    emptySet()
-                } else {
-                    measurementAtomIds.takeLast(2).toSet()
-                }
-            } else {
-            emptySet()
-        }
-
-        val selected = selectedAtom
-        val selectedElement = selected?.element?.uppercase()?.trim()
-
-        for (entry in atomNodeMap) {
-            val node = entry.key
-            val atom = entry.value
-            val base = com.music42.swiftyprotein.util.CpkColors.getColor(atom.element)
-
-            val color = if (measurementMode) {
-                if (measurementAtomIdSet.contains(atom.id)) {
-                    val t = 0.65f
-                    Color(
-                        base.red + (measureAccent.red - base.red) * t,
-                        base.green + (measureAccent.green - base.green) * t,
-                        base.blue + (measureAccent.blue - base.blue) * t,
-                        1f
-                    )
-                } else {
-                    base
-                }
-            } else {
-                val isSelected = selected != null && atom.id == selected.id
-                val isSameElement = selectedElement != null &&
-                    atom.element.uppercase().trim() == selectedElement
-                when {
-                    isSelected -> {
-                        val t = 0.45f
-                        Color(
-                            base.red + (1f - base.red) * t,
-                            base.green + (1f - base.green) * t,
-                            base.blue + (1f - base.blue) * t,
-                            1f
-                        )
-                    }
-                    isSameElement -> {
-                        val f = 0.55f
-                        Color(base.red * f, base.green * f, base.blue * f, 1f)
-                    }
-                    else -> base
-                }
-            }
-
-            runCatching {
-                node.materialInstance = materialLoader.createColorInstance(
-                    color = color,
-                    metallic = 0.0f,
-                    roughness = 0.6f,
-                    reflectance = 0.3f
-                )
-            }
-        }
-    }
-
-    fun sameBond(a: Bond, b: Bond): Boolean {
-        return (a.atomId1 == b.atomId1 && a.atomId2 == b.atomId2) ||
-            (a.atomId1 == b.atomId2 && a.atomId2 == b.atomId1)
-    }
-
-    LaunchedEffect(selectedBond, measurementMode, measurementBonds, mode, showHydrogens) {
-        // Highlight bonds when selected (info) and when used for angle measurement.
-        val selected = selectedBond
-        val measured = if (measurementMode) measurementBonds else emptyList()
-
-        for ((node, info) in bondNodeMap) {
-            val base = info.baseColor
-            val isMeasured = measured.any { sameBond(it, info.bond) }
-            val isSelected = selected != null && sameBond(selected, info.bond)
-
-            val color = when {
-                // Use vivid accent colors so the highlight is obvious.
-                isMeasured -> Color(0.90f, 0.35f, 0.05f, 1f) // vivid orange (measure)
-                isSelected -> Color(0.00f, 0.82f, 0.98f, 1f) // bright cyan (info)
-                else -> base
-            }
-
-            node.materialInstance = materialLoader.createColorInstance(
-                color = color,
-                metallic = 0.0f,
-                roughness = 0.4f,
-                reflectance = 0.5f
-            )
-        }
-    }
-
-    val tapDownPos = remember { floatArrayOf(0f, 0f) }
-    val tapDownTime = remember { longArrayOf(0L) }
-    val sceneViewRef = remember { arrayOfNulls<SceneView>(1) }
-
-    fun invalidateAtomLabels() {
-        if (!showAtomLabels || !overlaysEnabled) return
-        val overlay = labelOverlayViewRef[0] ?: return
-        val sceneView = sceneViewRef[0]
-        if (sceneView != null) {
-            sceneView.postOnAnimation { overlay.invalidate() }
-        } else {
-            overlay.postInvalidateOnAnimation()
-        }
-    }
-
-    val panTarget = remember(ligand.id) { floatArrayOf(0f, 0f) }
-    val twoFinger = remember { floatArrayOf(0f, 0f, 0f) }
-    val twoFingerSpan = remember { floatArrayOf(0f) }
-    val firstFrameLogged = remember(ligand.id) { booleanArrayOf(false) }
-
-    val cameraNode = rememberCameraNode(engine).apply {
-        near = 0.1f
-        far = 1000.0f
-    }
-    labelCameraRef[0] = cameraNode
-    labelAtomNodeMapRef[0] = atomNodeMap
-
-    val atomsForCenter = ligand.atoms.filterNot {
-        val e = it.element.uppercase().trim()
-        e == "H" || e == "D"
-    }.ifEmpty { ligand.atoms }
-    val cx = atomsForCenter.map { it.x }.average().toFloat()
-    val cy = atomsForCenter.map { it.y }.average().toFloat()
-    val cz = atomsForCenter.map { it.z }.average().toFloat()
-
-    val boundingRadius = (atomsForCenter.maxOfOrNull { a ->
-        val dx = a.x - cx; val dy = a.y - cy; val dz = a.z - cz
-        val dist = kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
-        val visualR = if (mode == VisualizationMode.SPACE_FILL) {
-            MoleculeSceneBuilder.BALL_RADIUS * MoleculeSceneBuilder.SPACE_FILL_BASE_SCALE *
-                (com.music42.swiftyprotein.util.VdwRadii.radiusAngstrom(a.element) / MoleculeSceneBuilder.SPACE_FILL_REF_VDW)
-        } else {
-            MoleculeSceneBuilder.BALL_RADIUS
-        }
-        dist + visualR
-    } ?: 5f).coerceAtLeast(1f)
-
-    val baseCameraDistance = boundingRadius * 4.5f
-    val distance = (baseCameraDistance / zoomFactor)
-        .coerceIn(baseCameraDistance * 0.2f, baseCameraDistance * 6f)
-
-    val defaultCamX = baseCameraDistance * 0.43f
-    val defaultCamY = baseCameraDistance * 0.32f
-    val defaultCamZ = baseCameraDistance * 0.75f
-    val defaultCamLen = kotlin.math.sqrt(defaultCamX * defaultCamX + defaultCamY * defaultCamY + defaultCamZ * defaultCamZ)
-
-    val lastCameraVector = remember(ligand.id) {
-        floatArrayOf(
-            defaultCamX / defaultCamLen * baseCameraDistance,
-            defaultCamY / defaultCamLen * baseCameraDistance,
-            defaultCamZ / defaultCamLen * baseCameraDistance
-        )
-    }
-    if (resetTick > 0) {
-        lastCameraVector[0] = defaultCamX / defaultCamLen * baseCameraDistance
-        lastCameraVector[1] = defaultCamY / defaultCamLen * baseCameraDistance
-        lastCameraVector[2] = defaultCamZ / defaultCamLen * baseCameraDistance
-        panTarget[0] = 0f
-        panTarget[1] = 0f
-        focusOffset = Float3(0f, 0f, 0f)
-        panOffset = Float3(0f, 0f, 0f)
-        focusTarget = null
-        parentNode.position = io.github.sceneview.math.Position(0f, 0f, 0f)
-    }
-
-    val cameraPosition = remember(ligand.id, zoomFactor, resetTick) {
-        val x = lastCameraVector[0]
-        val y = lastCameraVector[1]
-        val z = lastCameraVector[2]
-        val len = kotlin.math.sqrt(x * x + y * y + z * z)
-        if (len > 0.0001f) {
-            io.github.sceneview.math.Position(
-                x / len * distance,
-                y / len * distance,
-                z / len * distance
-            )
-        } else {
-            io.github.sceneview.math.Position(
-                defaultCamX / defaultCamLen * distance,
-                defaultCamY / defaultCamLen * distance,
-                defaultCamZ / defaultCamLen * distance
-            )
-        }
-    }
-    cameraNode.position = cameraPosition
-
-    val cameraManipulator = remember(ligand.id, resetTick) {
-        SceneView.createDefaultCameraManipulator(
-            orbitHomePosition = cameraPosition,
-            targetPosition = io.github.sceneview.math.Position(0f, 0f, 0f)
-        )
-    }
-
-    var autoRotateAngle by remember(ligand.id) { mutableFloatStateOf(0f) }
-
-    val zoomFactorRef = remember { floatArrayOf(zoomFactor) }
-    val onZoomCallbackRef = remember { arrayOf(onZoomFactorChange) }
-    zoomFactorRef[0] = zoomFactor
-    onZoomCallbackRef[0] = onZoomFactorChange
-
-    fun applyScrollZoom(scroll: Float) {
-        if (scroll == 0f) return
-        val zf = zoomFactorRef[0]
-        val next = if (scroll > 0f) {
-            (zf * 1.12f).coerceIn(0.3f, 5.0f)
-        } else {
-            (zf / 1.12f).coerceIn(0.3f, 5.0f)
-        }
-        onZoomCallbackRef[0](next)
-    }
-
-    Box(
-        modifier = modifier
-    ) {
-        Scene(
-            modifier = Modifier.fillMaxSize(),
-            engine = engine,
-            isOpaque = false,
-            materialLoader = materialLoader,
-            cameraNode = cameraNode,
-            cameraManipulator = cameraManipulator,
-            childNodes = listOf(parentNode),
-            onTouchEvent = { event, _ ->
-                when (event.actionMasked) {
-                    MotionEvent.ACTION_POINTER_DOWN -> {
-                        if (event.pointerCount == 2) {
-                            val x0 = event.getX(0)
-                            val y0 = event.getY(0)
-                            val x1 = event.getX(1)
-                            val y1 = event.getY(1)
-                            twoFinger[0] = 1f
-                            twoFinger[1] = (x0 + x1) / 2f
-                            twoFinger[2] = (y0 + y1) / 2f
-                            twoFingerSpan[0] = hypot(x1 - x0, y1 - y0).coerceAtLeast(1f)
-                            true
-                        } else {
-                            false
-                        }
-                    }
-                    MotionEvent.ACTION_SCROLL -> {
-                        val wheel = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
-                        val genericScroll = event.getAxisValue(MotionEvent.AXIS_SCROLL)
-                        val hScroll = event.getAxisValue(MotionEvent.AXIS_HSCROLL)
-                        val scroll = if (wheel != 0f) wheel else genericScroll
-                        if (scroll != 0f && kotlin.math.abs(scroll) >= kotlin.math.abs(hScroll)) {
-                            applyScrollZoom(scroll)
-                            invalidateAtomLabels()
-                            true
-                        } else {
-                            false
-                        }
-                    }
-                    MotionEvent.ACTION_DOWN -> {
-                        tapDownPos[0] = event.x
-                        tapDownPos[1] = event.y
-                        tapDownTime[0] = event.eventTime
-                        false
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        val sv = sceneViewRef[0]
-                        if (twoFinger[0] == 1f && event.pointerCount == 2 && sv != null && sv.width > 0 && sv.height > 0) {
-                            val x0 = event.getX(0)
-                            val y0 = event.getY(0)
-                            val x1 = event.getX(1)
-                            val y1 = event.getY(1)
-
-                            
-                            val span = hypot(x1 - x0, y1 - y0).coerceAtLeast(1f)
-                            val ratio = (span / twoFingerSpan[0]).coerceIn(0.85f, 1.15f)
-                            if (ratio != 1f) {
-                                onZoomFactorChange((zoomFactor * ratio).coerceIn(0.3f, 5.0f))
-                                invalidateAtomLabels()
-                            }
-                            twoFingerSpan[0] = span
-
-                            
-                            val midX = (x0 + x1) / 2f
-                            val midY = (y0 + y1) / 2f
-                            val dx = midX - twoFinger[1]
-                            val dy = midY - twoFinger[2]
-                            twoFinger[1] = midX
-                            twoFinger[2] = midY
-
-                            val camPos = cameraNode.position
-                            val forward = dev.romainguy.kotlin.math.normalize(
-                                Float3(-camPos.x, -camPos.y, -camPos.z)
-                            )
-                            val worldUp = Float3(0f, 1f, 0f)
-                            val right = dev.romainguy.kotlin.math.normalize(
-                                dev.romainguy.kotlin.math.cross(forward, worldUp)
-                            )
-                            val up = dev.romainguy.kotlin.math.cross(right, forward)
-
-                            val sensitivity = distance * 0.0006f
-                            val panDx = dx * sensitivity
-                            val panDy = dy * sensitivity
-                            panOffset = Float3(
-                                panOffset.x + right.x * panDx + up.x * (-panDy),
-                                panOffset.y + right.y * panDx + up.y * (-panDy),
-                                panOffset.z + right.z * panDx + up.z * (-panDy)
-                            )
-                            invalidateAtomLabels()
-                            true
-                        } else {
-                            false
-                        }
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        val dx = event.x - tapDownPos[0]
-                        val dy = event.y - tapDownPos[1]
-                        val moveDist = kotlin.math.sqrt(dx * dx + dy * dy)
-                        val elapsed = event.eventTime - tapDownTime[0]
-                        val sv = sceneViewRef[0]
-                        if (moveDist < 40f && elapsed < 500L && sv != null && sv.width > 0 && sv.height > 0) {
-                            val tapNormX = event.x / sv.width.toFloat()
-                            val tapNormY = 1f - event.y / sv.height.toFloat()
-                            val bondPick = pickBond(
-                                tapPxX = event.x,
-                                tapPxY = event.y,
-                                viewWidthPx = sv.width,
-                                viewHeightPx = sv.height,
-                                cameraNode = cameraNode,
-                                atomNodeMap = atomNodeMap,
-                                ligand = ligand
-                            )
-                            var closestAtom: Atom? = null
-                            var closestDist = Float.MAX_VALUE
-                            for ((meshNode, atom) in atomNodeMap) {
-                                val viewPos = cameraNode.worldToView(meshNode.worldPosition)
-                                val ddx = tapNormX - viewPos.x
-                                val ddy = tapNormY - viewPos.y
-                                val d = kotlin.math.sqrt(ddx * ddx + ddy * ddy)
-                                if (d < closestDist) {
-                                    closestDist = d
-                                    closestAtom = atom
-                                }
-                            }
-                            val atomDistPx = closestDist * sv.width.toFloat()
-                            val atomHit = closestAtom != null && closestDist < ATOM_PICK_RADIUS_NORM
-                            val bondDistPx = bondPick?.distancePx ?: Float.MAX_VALUE
-                            val bondScreenHit = bondPick != null && bondDistPx <= bondPick.thresholdPx
-                            val bondHit = bondScreenHit && (!atomHit || bondDistPx + 18f < atomDistPx)
-                            val atomWins = atomHit && (!bondScreenHit || atomDistPx + 18f <= bondDistPx)
-                            if (measurementMode) {
-                                when {
-                                    bondHit -> onMeasurementBondTapped(bondPick!!.bond)
-                                    atomWins -> onMeasurementAtomTapped(closestAtom!!)
-                                }
-                            } else when {
-                                bondHit -> onBondSelected(bondPick!!.bond)
-                                atomWins -> {
-                                    onAtomSelected(closestAtom!!)
-                                    val now = event.eventTime
-                                    val prev = lastTap[0]
-                                    val prevId = lastTapAtomId[0]
-                                    if (prevId == closestAtom.id && now - prev < 550L) {
-                                        val atomsForCenter = ligand.atoms.filterNot {
-                                            val e = it.element.uppercase().trim()
-                                            e == "H" || e == "D"
-                                        }.ifEmpty { ligand.atoms }
-                                        val cx = atomsForCenter.map { it.x }.average().toFloat()
-                                        val cy = atomsForCenter.map { it.y }.average().toFloat()
-                                        val cz = atomsForCenter.map { it.z }.average().toFloat()
-                                        focusTarget = Float3(
-                                            closestAtom.x - cx,
-                                            closestAtom.y - cy,
-                                            closestAtom.z - cz
-                                        )
-                                    }
-                                    lastTap[0] = now
-                                    lastTapAtomId[0] = closestAtom.id
-                                }
-                                else -> {
-                                    onDismissAtom()
-                                    onDismissBond()
-                                }
-                            }
-                        }
-                        false
-                    }
-                    MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_CANCEL -> {
-                        twoFinger[0] = 0f
-                        false
-                    }
-                    else -> false
-                }
-            },
-            onViewCreated = {
-                sceneViewRef[0] = this
-                onSceneViewForScreenshot(this)
-                isFocusable = true
-                isFocusableInTouchMode = true
-                setOnGenericMotionListener { _, motionEvent ->
-                    if (motionEvent.actionMasked != MotionEvent.ACTION_SCROLL) return@setOnGenericMotionListener false
-                    val wheel = motionEvent.getAxisValue(MotionEvent.AXIS_VSCROLL)
-                    val genericScroll = motionEvent.getAxisValue(MotionEvent.AXIS_SCROLL)
-                    val hScroll = motionEvent.getAxisValue(MotionEvent.AXIS_HSCROLL)
-                    val scroll = when {
-                        wheel != 0f -> wheel
-                        genericScroll != 0f -> genericScroll
-                        else -> 0f
-                    }
-                    if (scroll != 0f && kotlin.math.abs(scroll) >= kotlin.math.abs(hScroll)) {
-                        applyScrollZoom(scroll)
-                        invalidateAtomLabels()
-                        true
-                    } else {
-                        false
-                    }
-                }
-                requestFocus()
-                setZOrderOnTop(true)
-                runCatching { holder.setFormat(PixelFormat.TRANSLUCENT) }
-                runCatching {
-                    val loc = IntArray(2)
-                    getLocationInWindow(loc)
-                    sceneViewWindowXY[0] = loc[0]
-                    sceneViewWindowXY[1] = loc[1]
-                }
-                sceneViewSizePx = IntSize(width.coerceAtLeast(0), height.coerceAtLeast(0))
-                renderer.clearOptions = renderer.clearOptions.apply {
-                    clear = true
-                    clearColor = floatArrayOf(
-                        sceneBackground.red,
-                        sceneBackground.green,
-                        sceneBackground.blue,
-                        1f
-                    )
-                }
-            },
-            onViewUpdated = {
-                onSceneViewForScreenshot(this)
-                runCatching {
-                    val loc = IntArray(2)
-                    getLocationInWindow(loc)
-                    sceneViewWindowXY[0] = loc[0]
-                    sceneViewWindowXY[1] = loc[1]
-                }
-                sceneViewSizePx = IntSize(width.coerceAtLeast(0), height.coerceAtLeast(0))
-            },
-            onFrame = {
-                if (!firstFrameLogged[0]) {
-                    firstFrameLogged[0] = true
-                }
-                val p = cameraNode.position
-                lastCameraVector[0] = p.x
-                lastCameraVector[1] = p.y
-                lastCameraVector[2] = p.z
-
-                if (autoRotate) {
-                    autoRotateAngle += 0.02f
-                    val r = distance
-                    val x = kotlin.math.sin(autoRotateAngle) * r
-                    val z = kotlin.math.cos(autoRotateAngle) * r
-                    cameraNode.position = io.github.sceneview.math.Position(x, 0f, z)
-                } else {
-                    val len = kotlin.math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z)
-                        .coerceAtLeast(0.0001f)
-                    if (kotlin.math.abs(len - distance) > 0.01f) {
-                        val k = distance / len
-                        cameraNode.position = io.github.sceneview.math.Position(
-                            p.x * k, p.y * k, p.z * k
-                        )
-                    }
-                }
-
-                runCatching {
-                    cameraNode.lookAt(io.github.sceneview.math.Position(0f, 0f, 0f))
-                }
-
-                val target = focusTarget
-                if (target != null) {
-                    val k = 0.12f
-                    val next = Float3(
-                        focusOffset.x + (target.x - focusOffset.x) * k,
-                        focusOffset.y + (target.y - focusOffset.y) * k,
-                        focusOffset.z + (target.z - focusOffset.z) * k
-                    )
-                    focusOffset = next
-                    val done =
-                        kotlin.math.abs(target.x - next.x) < 0.01f &&
-                            kotlin.math.abs(target.y - next.y) < 0.01f &&
-                            kotlin.math.abs(target.z - next.z) < 0.01f
-                    if (done) {
-                        focusOffset = target
-                        focusTarget = null
-                    }
-                }
-
-                parentNode.position = io.github.sceneview.math.Position(
-                    -focusOffset.x + panOffset.x,
-                    -focusOffset.y + panOffset.y,
-                    -focusOffset.z + panOffset.z
-                )
-
-                invalidateAtomLabels()
-            }
-        )
-
-        if (showAtomLabels && overlaysEnabled) {
-            val onSurface = MaterialTheme.colorScheme.onSurface
-            val density = androidx.compose.ui.platform.LocalDensity.current
-            val popupW = sceneViewSizePx.width
-            val popupH = sceneViewSizePx.height
-            val paint = remember(onSurface, density) {
-                android.graphics.Paint().apply {
-                    isAntiAlias = true
-                    color = android.graphics.Color.argb(
-                        230,
-                        (onSurface.red * 255).toInt(),
-                        (onSurface.green * 255).toInt(),
-                        (onSurface.blue * 255).toInt()
-                    )
-                    textSize = with(density) { 11.dp.toPx() }
-                    typeface = android.graphics.Typeface.create(
-                        android.graphics.Typeface.DEFAULT,
-                        android.graphics.Typeface.BOLD
-                    )
-                }
-            }
-            val fm = paint.fontMetrics
-            val textHalfH = -(fm.ascent + fm.descent) / 2f
-            if (popupW > 0 && popupH > 0) {
-                LabelOverlayPopup(
-                    widthPx = popupW,
-                    heightPx = popupH,
-                    density = density,
-                    sceneViewRef = sceneViewRef,
-                    cameraRef = labelCameraRef,
-                    atomNodeMapRef = labelAtomNodeMapRef,
-                    paint = paint,
-                    textHalfH = textHalfH,
-                    onOverlayView = { labelOverlayViewRef[0] = it }
-                )
-            }
-        }
-
-        if (measurementMode && overlaysEnabled) {
-            androidx.compose.ui.window.Popup(
-                alignment = Alignment.BottomCenter,
-                properties = androidx.compose.ui.window.PopupProperties(
-                    focusable = false,
-                    usePlatformDefaultWidth = true,
-                ),
-            ) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp)
-                        .padding(bottom = 12.dp),
-                    contentAlignment = Alignment.BottomCenter,
-                ) {
-                    MeasurementOverlay(
-                        ligand = ligand,
-                        selectedAtomIds = measurementAtomIds,
-                        selectedBonds = measurementBonds,
-                        onClear = onClearMeasurement,
-                        onExitMeasurementMode = onExitMeasurementMode,
-                    )
-                }
-            }
-        }
-
-    }
-}
-
-private fun angleDegrees(vertex: Atom, arm1: Atom, arm2: Atom): Float {
-    val v1 = Float3(arm1.x - vertex.x, arm1.y - vertex.y, arm1.z - vertex.z)
-    val v2 = Float3(arm2.x - vertex.x, arm2.y - vertex.y, arm2.z - vertex.z)
-    val dot = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
-    val len1 = kotlin.math.sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z)
-    val len2 = kotlin.math.sqrt(v2.x * v2.x + v2.y * v2.y + v2.z * v2.z)
-    if (len1 <= 1e-6f || len2 <= 1e-6f) return 0f
-    val cos = (dot / (len1 * len2)).coerceIn(-1f, 1f)
-    return kotlin.math.acos(cos) * 180f / kotlin.math.PI.toFloat()
-}
-
-private fun formatAtomDistance(atoms: List<Atom>): String {
-    val a = atoms[atoms.size - 2]
-    val b = atoms[atoms.size - 1]
-    val dx = a.x - b.x
-    val dy = a.y - b.y
-    val dz = a.z - b.z
-    val d = kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
-    return "Distance ${a.id}–${b.id}: ${String.format("%.2f Å", d)}"
-}
-
-private fun formatBondAngle(ligand: Ligand, selectedBonds: List<Bond>): String {
-    val b1 = selectedBonds[selectedBonds.size - 2]
-    val b2 = selectedBonds[selectedBonds.size - 1]
-    val common = sequenceOf(b1.atomId1, b1.atomId2).firstOrNull { it == b2.atomId1 || it == b2.atomId2 }
-        ?: return "Angle: pick 2 bonds sharing one atom"
-    val vertex = ligand.atoms.firstOrNull { it.id == common } ?: return "Angle: unavailable"
-    val other1Id = if (b1.atomId1 == common) b1.atomId2 else b1.atomId1
-    val other2Id = if (b2.atomId1 == common) b2.atomId2 else b2.atomId1
-    val p1 = ligand.atoms.firstOrNull { it.id == other1Id }
-    val p2 = ligand.atoms.firstOrNull { it.id == other2Id }
-    if (p1 == null || p2 == null) return "Angle: unavailable"
-    val angle = angleDegrees(vertex, p1, p2)
-    return "Angle at ${vertex.id}: ${String.format("%.1f°", angle)}"
-}
-
-@Composable
-private fun MeasurementOverlay(
-    ligand: Ligand,
-    selectedAtomIds: List<String>,
-    selectedBonds: List<Bond>,
-    onClear: () -> Unit,
-    onExitMeasurementMode: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val screenWidthDp = LocalConfiguration.current.screenWidthDp
-    val maxCardDp = kotlin.math.min(kotlin.math.max(screenWidthDp - 24, 120), 304)
-    val atoms = selectedAtomIds.mapNotNull { id -> ligand.atoms.firstOrNull { it.id == id } }
-    val details = when {
-        selectedBonds.size >= 2 -> formatBondAngle(ligand, selectedBonds)
-        atoms.size >= 2 -> formatAtomDistance(atoms)
-        selectedBonds.size == 1 -> {
-            val b = selectedBonds.last()
-            "Bond 1/2: ${b.atomId1}–${b.atomId2}"
-        }
-        atoms.size == 1 -> "Atom 1/2: ${atoms[0].id}"
-        else -> "2 atoms → distance, 2 bonds (shared atom) → angle"
-    }
-    val headerText = "Measure mode:"
-    val detailText = details
-
-    Card(
-        modifier = modifier.widthIn(max = maxCardDp.dp),
-        shape = RoundedCornerShape(999.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.88f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Image(
-                painter = androidx.compose.ui.res.painterResource(com.music42.swiftyprotein.R.drawable.ic_launcher_foreground),
-                contentDescription = "Close measurement mode",
-                modifier = Modifier
-                    .size(22.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onExitMeasurementMode)
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = headerText,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFFFF9800)
-                )
-                Text(
-                    text = detailText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.inverseOnSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            Text(
-                text = "Reset",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.inverseOnSurface,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .clickable(onClick = onClear)
-                    .padding(horizontal = 8.dp, vertical = 6.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun AtomTooltip(
-    atom: Atom,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val bg = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.88f)
-    val fg = MaterialTheme.colorScheme.inverseOnSurface
-    Card(
-        shape = RoundedCornerShape(999.dp),
-        colors = CardDefaults.cardColors(containerColor = bg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        modifier = modifier.clickable(onClick = onDismiss)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
-        ) {
-            Image(
-                painter = androidx.compose.ui.res.painterResource(com.music42.swiftyprotein.R.drawable.ic_launcher_foreground),
-                contentDescription = "Atom info",
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "${atom.element}  ·  ${atom.elementName}  ·  ${atom.id}",
-                style = MaterialTheme.typography.labelLarge,
-                color = fg,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-    }
-}
-
-private enum class ShareFormat(val extension: String, val mimeType: String) {
-    PNG("png", "image/png"),
-    JPEG("jpg", "image/jpeg")
-}
-
-
-private fun shareVideo(
-    context: Context,
-    file: File,
-    ligandId: String,
-    ligand: Ligand?,
-    openChooser: (Intent, String) -> Unit
-) {
-    val uri = FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.fileprovider",
-        file
-    )
-    val shareText = buildLigandShareText(ligandId, ligand)
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "video/mp4"
-        putExtra(Intent.EXTRA_STREAM, uri)
-        putExtra(Intent.EXTRA_TEXT, shareText)
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        val clip = ClipData.newUri(
-            context.contentResolver,
-            "ligand_${ligandId}",
-            uri
-        )
-        clip.addItem(ClipData.Item(shareText))
-        clipData = clip
-    }
-    val resInfoList = context.packageManager.queryIntentActivities(intent, 0)
-    for (resolveInfo in resInfoList) {
-        runCatching {
-            context.grantUriPermission(
-                resolveInfo.activityInfo.packageName,
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-        }
-    }
-    openChooser(intent, "Share Ligand")
-}
-
-private class ScreenRecorder(
-    private val activity: Activity,
-    private val projection: MediaProjection,
-    private val outputFile: File
-) {
-    private var recorder: MediaRecorder? = null
-    private var virtualDisplay: VirtualDisplay? = null
-    private var projectionCallback: MediaProjection.Callback? = null
-    private var started: Boolean = false
-
-    fun start() {
-        val metrics = activity.resources.displayMetrics
-        val rawWidth = (activity.window.decorView.width.takeIf { it > 0 } ?: metrics.widthPixels)
-        val rawHeight = (activity.window.decorView.height.takeIf { it > 0 } ?: metrics.heightPixels)
-        val densityDpi = metrics.densityDpi
-
-        val maxWidth = 1280
-        val scale = if (rawWidth > maxWidth) maxWidth.toFloat() / rawWidth.toFloat() else 1f
-        val width = ((rawWidth * scale).toInt() / 2) * 2
-        val height = ((rawHeight * scale).toInt() / 2) * 2
-
-        val mr = MediaRecorder().apply {
-            setVideoSource(MediaRecorder.VideoSource.SURFACE)
-            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-            setVideoEncodingBitRate(4_000_000)
-            setVideoFrameRate(30)
-            setVideoSize(width, height)
-            setOutputFile(outputFile.absolutePath)
-            prepare()
-        }
-
-        recorder = mr
-        started = false
-
-        val cb = object : MediaProjection.Callback() {
-            override fun onStop() {
-            }
-        }
-        projectionCallback = cb
-        projection.registerCallback(cb, Handler(Looper.getMainLooper()))
-
-        virtualDisplay = projection.createVirtualDisplay(
-            "SwiftyProteinRecord",
-            width,
-            height,
-            densityDpi,
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-            mr.surface,
-            null,
-            null
-        )
-        mr.start()
-        started = true
-    }
-
-    fun stop(): File {
-        if (started) {
-            runCatching { recorder?.stop() }.onFailure {
-            }
-        }
-        runCatching { recorder?.release() }
-        recorder = null
-        runCatching { virtualDisplay?.release() }
-        virtualDisplay = null
-        runCatching {
-            projectionCallback?.let { projection.unregisterCallback(it) }
-        }
-        projectionCallback = null
-        runCatching { projection.stop() }
-        return outputFile
-    }
-}
-
-private const val ATOM_PICK_RADIUS_NORM = 0.14f
-
-private data class BondPickCandidate(
-    val bond: Bond,
-    val distancePx: Float,
-    val thresholdPx: Float
-)
-
-private fun worldPositionToScreenPx(
-    worldPos: io.github.sceneview.math.Position,
-    cameraNode: io.github.sceneview.node.CameraNode,
-    viewWidthPx: Int,
-    viewHeightPx: Int
-): Pair<Float, Float> {
-    val view = cameraNode.worldToView(worldPos)
-    return view.x * viewWidthPx.toFloat() to (1f - view.y) * viewHeightPx.toFloat()
-}
-
-private fun bondPickThresholdPx(screenSegmentLengthPx: Float, order: BondOrder): Float {
-    val along = (screenSegmentLengthPx * 0.45f + 44f).coerceIn(60f, 120f)
-    val orderExtra = when (order) {
-        BondOrder.TRIPLE -> 16f
-        BondOrder.DOUBLE, BondOrder.AROMATIC -> 12f
-        else -> 0f
-    }
-    return along + orderExtra
-}
-
-private fun pickBond(
-    tapPxX: Float,
-    tapPxY: Float,
-    viewWidthPx: Int,
-    viewHeightPx: Int,
-    cameraNode: io.github.sceneview.node.CameraNode,
-    atomNodeMap: Map<MeshNode, Atom>,
-    ligand: Ligand
-): BondPickCandidate? {
-    val nodeByAtomId = atomNodeMap.entries.associate { it.value.id to it.key }
-    var best: BondPickCandidate? = null
-
-    fun consider(bond: Bond, distancePx: Float, thresholdPx: Float) {
-        if (distancePx > thresholdPx) return
-        if (best == null || distancePx < best!!.distancePx) {
-            best = BondPickCandidate(bond, distancePx, thresholdPx)
-        }
-    }
-
-    for (bond in ligand.bonds) {
-        val n1 = nodeByAtomId[bond.atomId1] ?: continue
-        val n2 = nodeByAtomId[bond.atomId2] ?: continue
-        val (x1, y1) = worldPositionToScreenPx(n1.worldPosition, cameraNode, viewWidthPx, viewHeightPx)
-        val (x2, y2) = worldPositionToScreenPx(n2.worldPosition, cameraNode, viewWidthPx, viewHeightPx)
-        val d = pointToSegmentDistanceForBondPick(tapPxX, tapPxY, x1, y1, x2, y2)
-        val segLen = hypot(x2 - x1, y2 - y1)
-        consider(bond, d, bondPickThresholdPx(segLen, bond.order))
-    }
-
-    return best
-}
-
-private fun pointToSegmentDistanceForBondPick(
-    px: Float,
-    py: Float,
-    x1: Float,
-    y1: Float,
-    x2: Float,
-    y2: Float
-): Float {
-    val vx = x2 - x1
-    val vy = y2 - y1
-    val vv = vx * vx + vy * vy
-    if (vv <= 1e-12f) {
-        return hypot(px - x1, py - y1)
-    }
-    val wx = px - x1
-    val wy = py - y1
-    val t = ((wx * vx + wy * vy) / vv).coerceIn(0f, 1f)
-    val cx = x1 + t * vx
-    val cy = y1 + t * vy
-    val d = hypot(px - cx, py - cy)
-    val segLen = hypot(vx, vy)
-    val guard = minOf(32f, segLen * 0.24f)
-    val distFromStart = hypot(cx - x1, cy - y1)
-    val distFromEnd = hypot(cx - x2, cy - y2)
-    val endpointPenalty = if (distFromStart < guard || distFromEnd < guard) guard * 1.4f else 0f
-    return d + endpointPenalty
-}
-
-private fun pointToSegmentDistance(
-    px: Float,
-    py: Float,
-    x1: Float,
-    y1: Float,
-    x2: Float,
-    y2: Float
-): Float {
-    val vx = x2 - x1
-    val vy = y2 - y1
-    val wx = px - x1
-    val wy = py - y1
-    val vv = vx * vx + vy * vy
-    if (vv <= 1e-12f) {
-        val dx = px - x1
-        val dy = py - y1
-        return kotlin.math.sqrt(dx * dx + dy * dy)
-    }
-    var t = (wx * vx + wy * vy) / vv
-    t = t.coerceIn(0f, 1f)
-    val cx = x1 + t * vx
-    val cy = y1 + t * vy
-    val dx = px - cx
-    val dy = py - cy
-    return kotlin.math.sqrt(dx * dx + dy * dy)
-}
-
-@Composable
-private fun BondTooltip(
-    bond: Bond,
-    ligand: Ligand,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val a1 = ligand.atoms.firstOrNull { it.id == bond.atomId1 }
-    val a2 = ligand.atoms.firstOrNull { it.id == bond.atomId2 }
-    val length = if (a1 != null && a2 != null) {
-        val dx = a1.x - a2.x
-        val dy = a1.y - a2.y
-        val dz = a1.z - a2.z
-        kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
-    } else null
-
-    val order = when (bond.order) {
-        BondOrder.SINGLE -> "Single"
-        BondOrder.DOUBLE -> "Double"
-        BondOrder.TRIPLE -> "Triple"
-        BondOrder.AROMATIC -> "Aromatic"
-    }
-    val lengthText = length?.let { String.format("%.2f Å", it) } ?: "?"
-
-    val bg = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.88f)
-    val fg = MaterialTheme.colorScheme.inverseOnSurface
-    Card(
-        shape = RoundedCornerShape(999.dp),
-        colors = CardDefaults.cardColors(containerColor = bg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        modifier = modifier.clickable(onClick = onDismiss)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
-        ) {
-            Image(
-                painter = androidx.compose.ui.res.painterResource(com.music42.swiftyprotein.R.drawable.ic_launcher_foreground),
-                contentDescription = "Bond info",
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "$order  ·  ${bond.atomId1}–${bond.atomId2}  ·  $lengthText",
-                style = MaterialTheme.typography.labelLarge,
-                color = fg,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-    }
-}
-
-@Composable
-private fun LabelOverlayPopup(
-    widthPx: Int,
-    heightPx: Int,
-    density: androidx.compose.ui.unit.Density,
-    sceneViewRef: Array<SceneView?>,
-    cameraRef: Array<CameraNode?>,
-    atomNodeMapRef: Array<Map<MeshNode, Atom>?>,
-    paint: android.graphics.Paint,
-    textHalfH: Float,
-    onOverlayView: (android.view.View) -> Unit
-) {
-    androidx.compose.ui.window.Popup(
-        alignment = Alignment.TopStart,
-        properties = androidx.compose.ui.window.PopupProperties(
-            focusable = false,
-            clippingEnabled = false
-        )
-    ) {
-        val sizeModifier = with(density) {
-            Modifier.size(widthPx.toDp(), heightPx.toDp())
-        }
-        AndroidView(
-            factory = { ctx ->
-                object : android.view.View(ctx) {
-                    init {
-                        setWillNotDraw(false)
-                        setBackgroundColor(android.graphics.Color.TRANSPARENT)
-                    }
-                    override fun onTouchEvent(event: android.view.MotionEvent?) = false
-                    override fun onDraw(c: android.graphics.Canvas) {
-                        super.onDraw(c)
-                        val sv = sceneViewRef[0] ?: return
-                        val camera = cameraRef[0] ?: return
-                        val nodes = atomNodeMapRef[0] ?: return
-                        if (sv.width <= 0 || sv.height <= 0) return
-                        val w = sv.width.toFloat()
-                        val h = sv.height.toFloat()
-                        for ((node, atom) in nodes) {
-                            val v = camera.worldToView(node.worldPosition)
-                            val px = (v.x * w).coerceIn(0f, w)
-                            val py = ((1f - v.y) * h).coerceIn(0f, h)
-                            val text = atom.element
-                            val tw = paint.measureText(text)
-                            c.drawText(text, px - tw / 2f, py + textHalfH, paint)
-                        }
-                    }
-                    override fun onAttachedToWindow() {
-                        super.onAttachedToWindow()
-                        var r: android.view.ViewParent? = parent
-                        while (r != null) {
-                            if (r is android.view.View) {
-                                val root = r as android.view.View
-                                val lp = root.layoutParams
-                                if (lp is android.view.WindowManager.LayoutParams) {
-                                    lp.flags = lp.flags or
-                                        android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                                    runCatching {
-                                        (root.context.getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager)
-                                            .updateViewLayout(root, lp)
-                                    }
-                                    break
-                                }
-                            }
-                            r = r.parent
-                        }
-                    }
-                }.also { onOverlayView(it) }
-            },
-            modifier = sizeModifier
-        )
-    }
-}
-
-@Composable
-private fun ModeBanner(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val bg = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.88f)
-    val fg = MaterialTheme.colorScheme.inverseOnSurface
-    Card(
-        shape = RoundedCornerShape(999.dp),
-        colors = CardDefaults.cardColors(containerColor = bg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        modifier = modifier.clickable(onClick = onClick)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
-        ) {
-            Image(
-                painter = androidx.compose.ui.res.painterResource(com.music42.swiftyprotein.R.drawable.ic_launcher_foreground),
-                contentDescription = "Measurement info",
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                color = fg,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
     }
 }

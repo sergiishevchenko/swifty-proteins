@@ -1,0 +1,210 @@
+package com.music42.swiftyprotein.ui.compare
+
+import android.graphics.PixelFormat
+import android.view.MotionEvent
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
+import com.music42.swiftyprotein.data.model.Atom
+import com.music42.swiftyprotein.data.model.Ligand
+import com.music42.swiftyprotein.ui.proteinview.MoleculeSceneBuilder
+import com.music42.swiftyprotein.ui.proteinview.VisualizationMode
+import io.github.sceneview.Scene
+import io.github.sceneview.SceneView
+import io.github.sceneview.rememberCameraNode
+import io.github.sceneview.rememberEngine
+import io.github.sceneview.rememberMaterialLoader
+import kotlin.math.hypot
+@Composable
+internal fun CompareMoleculeViewer(
+    ligand: Ligand,
+    zoomFactor: Float,
+    onZoomFactorChange: (Float) -> Unit,
+    resetTick: Int,
+    viewportWidthPx: Int,
+    viewportHeightPx: Int,
+    modifier: Modifier = Modifier
+) {
+    val engine = rememberEngine()
+    val materialLoader = rememberMaterialLoader(engine)
+    val sceneTint = if (MaterialTheme.colorScheme.background.red < 0.4f) {
+        Color(0xFF151A20)
+    } else {
+        Color(0xFFF3F5F7)
+    }
+    val atoms = ligand.atoms.filterNot {
+        val e = it.element.uppercase().trim()
+        e == "H" || e == "D"
+    }.ifEmpty { ligand.atoms }
+    val cx = atoms.map { it.x }.average().toFloat()
+    val cy = atoms.map { it.y }.average().toFloat()
+    val cz = atoms.map { it.z }.average().toFloat()
+    val (parentNode, _, _) = remember(ligand.id) {
+        MoleculeSceneBuilder.build(
+            engine = engine,
+            materialLoader = materialLoader,
+            ligand = ligand,
+            mode = VisualizationMode.BALL_AND_STICK,
+            highlightElement = null,
+            centerOffset = dev.romainguy.kotlin.math.Float3(0f, 0f, 0f),
+            showHydrogens = false
+        )
+    }
+
+    val cameraNode = rememberCameraNode(engine).apply {
+        near = 0.1f
+        far = 1000.0f
+    }
+
+    val boundingRadius = compareBoundingRadius(ligand, atoms, cx, cy, cz)
+    val baseDist = compareFitBaseDistance(
+        boundingRadius = boundingRadius,
+        viewWidthPx = viewportWidthPx,
+        viewHeightPx = viewportHeightPx
+    )
+    val dist = (baseDist / zoomFactor).coerceIn(baseDist * 0.2f, baseDist * 6f)
+    val dirX = 0.43f; val dirY = 0.32f; val dirZ = 0.75f
+    val dirLen = kotlin.math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+    val defaultCameraPos = io.github.sceneview.math.Position(
+        dirX / dirLen * dist,
+        dirY / dirLen * dist,
+        dirZ / dirLen * dist
+    )
+    LaunchedEffect(ligand.id, resetTick, dist) {
+        cameraNode.position = defaultCameraPos
+        runCatching { cameraNode.lookAt(io.github.sceneview.math.Position(0f, 0f, 0f)) }
+    }
+
+    val cameraManipulator = remember(ligand.id, resetTick, dist) {
+        SceneView.createDefaultCameraManipulator(
+            orbitHomePosition = defaultCameraPos,
+            targetPosition = io.github.sceneview.math.Position(0f, 0f, 0f)
+        )
+    }
+
+    val twoFingerActive = remember { floatArrayOf(0f) }
+    val twoFingerSpan = remember { floatArrayOf(0f) }
+
+    Scene(
+        modifier = modifier,
+        engine = engine,
+        isOpaque = false,
+        materialLoader = materialLoader,
+        cameraNode = cameraNode,
+        cameraManipulator = cameraManipulator,
+        childNodes = listOf(parentNode),
+        onFrame = {
+            runCatching {
+                val p = cameraNode.position
+                val len = kotlin.math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z).coerceAtLeast(0.0001f)
+                val k = dist / len
+                cameraNode.position = io.github.sceneview.math.Position(p.x * k, p.y * k, p.z * k)
+                cameraNode.lookAt(io.github.sceneview.math.Position(0f, 0f, 0f))
+            }
+        },
+        onViewCreated = {
+            setZOrderOnTop(true)
+            runCatching { holder.setFormat(android.graphics.PixelFormat.TRANSLUCENT) }
+            renderer.clearOptions = renderer.clearOptions.apply {
+                clear = true
+                clearColor = floatArrayOf(sceneTint.red, sceneTint.green, sceneTint.blue, 1f)
+            }
+        },
+        onTouchEvent = { event, _ ->
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_POINTER_DOWN -> {
+                    if (event.pointerCount == 2) {
+                        val x0 = event.getX(0)
+                        val y0 = event.getY(0)
+                        val x1 = event.getX(1)
+                        val y1 = event.getY(1)
+                        twoFingerActive[0] = 1f
+                        twoFingerSpan[0] = hypot(x1 - x0, y1 - y0).coerceAtLeast(1f)
+                        true
+                    } else false
+                }
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    if (twoFingerActive[0] == 1f && event.pointerCount == 2) {
+                        val x0 = event.getX(0)
+                        val y0 = event.getY(0)
+                        val x1 = event.getX(1)
+                        val y1 = event.getY(1)
+                        val span = hypot(x1 - x0, y1 - y0).coerceAtLeast(1f)
+                        val ratio = (span / twoFingerSpan[0]).coerceIn(0.85f, 1.15f)
+                        if (ratio != 1f) {
+                            onZoomFactorChange((zoomFactor * ratio).coerceIn(0.3f, 5.0f))
+                        }
+                        twoFingerSpan[0] = span
+                        true
+                    } else false
+                }
+                android.view.MotionEvent.ACTION_POINTER_UP,
+                android.view.MotionEvent.ACTION_UP,
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    if (twoFingerActive[0] == 1f) {
+                        twoFingerActive[0] = 0f
+                        true
+                    } else false
+                }
+                android.view.MotionEvent.ACTION_SCROLL -> {
+                    val wheel = event.getAxisValue(android.view.MotionEvent.AXIS_VSCROLL)
+                    val scroll = if (wheel != 0f) wheel else event.getAxisValue(android.view.MotionEvent.AXIS_SCROLL)
+                    if (scroll != 0f) {
+                        val next = if (scroll > 0f) zoomFactor * 1.12f else zoomFactor / 1.12f
+                        onZoomFactorChange(next.coerceIn(0.3f, 5.0f))
+                        true
+                    } else false
+                }
+                else -> false
+            }
+        }
+    )
+}
+
+internal fun compareBoundingRadius(
+    ligand: Ligand,
+    atoms: List<Atom>,
+    cx: Float,
+    cy: Float,
+    cz: Float
+): Float {
+    val ballR = MoleculeSceneBuilder.BALL_RADIUS
+    val atomIds = atoms.map { it.id }.toSet()
+    fun distFromCenter(x: Float, y: Float, z: Float): Float {
+        val dx = x - cx
+        val dy = y - cy
+        val dz = z - cz
+        return kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
+    }
+    val fromAtoms = atoms.maxOfOrNull { distFromCenter(it.x, it.y, it.z) + ballR } ?: 0f
+    val fromBonds = ligand.bonds.maxOfOrNull { bond ->
+        if (bond.atomId1 !in atomIds || bond.atomId2 !in atomIds) return@maxOfOrNull 0f
+        val a1 = atoms.first { it.id == bond.atomId1 }
+        val a2 = atoms.first { it.id == bond.atomId2 }
+        maxOf(
+            distFromCenter(a1.x, a1.y, a1.z),
+            distFromCenter(a2.x, a2.y, a2.z)
+        ) + ballR
+    } ?: 0f
+    return maxOf(fromAtoms, fromBonds, 1f)
+}
+
+internal fun compareFitBaseDistance(
+    boundingRadius: Float,
+    viewWidthPx: Int,
+    viewHeightPx: Int
+): Float {
+    val padding = 1.35f
+    if (viewWidthPx <= 0 || viewHeightPx <= 0) {
+        return boundingRadius * 5.5f
+    }
+    val aspect = viewWidthPx.toFloat() / viewHeightPx.toFloat()
+    val halfFovY = kotlin.math.PI.toFloat() / 8f
+    val halfFovX = kotlin.math.atan(kotlin.math.tan(halfFovY) * aspect)
+    val distV = boundingRadius / kotlin.math.sin(halfFovY) * padding
+    val distH = boundingRadius / kotlin.math.sin(halfFovX) * padding
+    return maxOf(distV, distH)
+}
