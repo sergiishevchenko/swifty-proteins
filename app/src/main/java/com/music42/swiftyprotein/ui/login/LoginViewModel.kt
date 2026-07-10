@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.music42.swiftyprotein.data.repository.AuthRepository
 import com.music42.swiftyprotein.data.repository.AuthResult
-import com.music42.swiftyprotein.util.BiometricHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,17 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-data class LoginUiState(
-    val username: String = "",
-    val password: String = "",
-    val isRegistering: Boolean = false,
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val isAuthenticated: Boolean = false,
-    val biometricAvailable: Boolean = false,
-    val lastUsername: String? = null
-)
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -45,27 +33,23 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun checkBiometricAvailability() {
-        val deviceSupports = BiometricHelper.canAuthenticate(getApplication())
-        if (!deviceSupports) {
-            _uiState.update { it.copy(biometricAvailable = false) }
-            return
-        }
         viewModelScope.launch {
-            val last = authRepository.getLastUsername()?.trim().orEmpty()
-            if (last.isBlank()) {
-                _uiState.update { it.copy(biometricAvailable = false, lastUsername = null) }
-                return@launch
+            val availability = resolveBiometricAvailability(
+                application = getApplication(),
+                authRepository = authRepository,
+                typedUsername = _uiState.value.username.trim()
+            )
+            _uiState.update {
+                it.copy(
+                    biometricAvailable = availability.available,
+                    lastUsername = availability.lastUsername
+                )
             }
-            val exists = authRepository.userExists(last)
-            val typed = _uiState.value.username.trim()
-            val enabledForTyped = exists && typed.isNotBlank() && typed == last
-            _uiState.update { it.copy(biometricAvailable = enabledForTyped, lastUsername = last.takeIf { exists }) }
         }
     }
 
     fun onUsernameChange(value: String) {
-        val next = value
-        _uiState.update { it.copy(username = next, errorMessage = null) }
+        _uiState.update { it.copy(username = value, errorMessage = null) }
         checkBiometricAvailability()
     }
 
@@ -112,9 +96,9 @@ class LoginViewModel @Inject constructor(
     }
 
     fun consumeShowOnboardingAfterRegister(): Boolean {
-        val v = showOnboardingAfterRegister
+        val value = showOnboardingAfterRegister
         showOnboardingAfterRegister = false
-        return v
+        return value
     }
 
     fun onBiometricSuccess() {
